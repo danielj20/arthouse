@@ -1,0 +1,72 @@
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.submit-link {
+  font-weight: 700;
+  font-size: 2rem;
+  text-decoration: underline;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.article-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.submit-arrow {
+    font-family: "MANIC", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+}
+
+.submit-link:hover {
+  transform: translateX(4px);
+}
+
+/* Colors per category */
+.music   { color: #0056ff; }   /* Blue */
+.art     { color: #1f8a3e; }   /* Green */
+.fiction { color: #b22222; }   /* Red */
+.cinema  { color: #f39c12; }   /* Orange */
+.poetry  { color: #ff6600; }   /* Bright orange */
+
+h1.music   { color: #0056ff; }
+h1.art     { color: #1f8a3e; }
+h1.fiction { color: #b22222; }
+h1.cinema  { color: #f39c12; }
+h1.poetry  { color: #ff6600; }
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.submit-container button {
+  display: inline-block;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+}
+
+label .title {
+  margin-left: 1rem;
+}
+
+label .submit-note {
+  margin-top: 1rem;
+  margin-left: 1rem;
+  font-style: italic;
+}
+
+.guidelines {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Uploading — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+  </head>
+  <body>
+    <main class="container-sm">
+      <h1>⏳ Uploading your file…</h1>
+      <p>
+        Your artwork is being uploaded to arthouse. Please wait, this may take a
+        moment.
+      </p>
+    </main>
+  </body>
+  <script>
+    fetch("/partials/header.html")
+      .then((r) => r.text())
+      .then((html) => {
+        document.body.insertAdjacentHTML("afterbegin", html);
+        // call into auth.js now that header exists
+        window.authInit && window.authInit();
+      })
+      .catch((err) => console.error("Header load failed:", err));
+  </script>
+</html>

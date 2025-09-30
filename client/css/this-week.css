@@ -1,0 +1,147 @@
+.drop-layout {
+  display: flex;
+  gap: 2rem;
+  max-width: 70rem; /* keeps whole layout centered */
+  margin: 3rem auto;
+  padding: 0 6rem;
+  align-items: start;
+}
+
+.drop-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 40rem;
+}
+
+.drop-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;
+  width: fit-content;
+  max-width: 40rem;
+}
+
+.drop-hero {
+  position: relative;
+  max-width: 100%;
+}
+
+.drop-hero img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  max-height: 500px; /* prevents giant image */
+}
+
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  color: white;
+}
+
+.paper-snippet {
+  width: 64px;
+  height: 64px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #FFF9EA;
+  font-family: "Georgia", serif;
+  font-size: 0.6rem;
+  line-height: 1.2;
+  text-align: center;
+  color: #2c2c2c;
+  box-shadow: inset 0 0 20px rgba(255, 127, 17, 0.25);
+  overflow: hidden;
+
+  /* important bits */
+  word-break: keep-all;         /* never break words in the middle */
+  overflow-wrap: normal;        /* only break at spaces/hyphens */
+  text-overflow: clip;          /* clip at character boundaries (no ellipsis) */
+}
+
+.paper-snippet p {
+  margin: 0;
+  max-height: 100%;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* truncate at full words only */
+  line-clamp: auto; /* doesn’t exist but see below */
+  letter-spacing: normal;
+}
+
+.drop-number {
+  font-weight: 700;
+  font-size: clamp(2.25rem, 4vw, 3rem);
+  align-self: flex-start;
+}
+
+.drop-dates {
+  font-size: 1rem;
+  align-self: flex-end;
+}
+
+.editor-note {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+#categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: fit-content;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.category img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+}
+
+.cat-link {
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 1.75rem;
+  white-space: nowrap;
+}
+
+.cat-link.blue { color: #1976d2; }
+.cat-link.orange { color: #ff9800; }
+.cat-link.red { color: #d32f2f; }
+.cat-link.green { color: #388e3c; }
+.cat-link.darkorange { color: #ef6c00; }
+
+/* Responsive stacking */
+@media (max-width: 900px) {
+  .cat-link {
+    font-size: 1.3rem;
+  }
+}
+@media (max-width: 850px) {
+  .drop-layout {
+    flex-direction: column;
+    align-items: center;
+    padding: 0 2rem;
+    margin: 1rem auto;
+  }
+  .drop-side {
+    width: 100%;
+    align-items: start;
+  }
+}

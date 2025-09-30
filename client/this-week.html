@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>this week — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <link rel="stylesheet" href="/css/this-week.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+  </head>
+  <body>
+    <main class="drop-layout">
+      <section class="drop-main">
+        <div id="heroWrapper" class="drop-hero"></div>
+        <div class="editor-note" id="editorNote"></div>
+      </section>
+      <aside class="drop-side">
+        <div id="categories"></div>
+      </aside>
+    </main>
+  </body>
+  <script>
+    fetch("/partials/header.html")
+      .then((r) => r.text())
+      .then((html) => {
+        document.body.insertAdjacentHTML("afterbegin", html);
+        window.authInit && window.authInit();
+      });
+
+    async function loadDrop() {
+      try {
+        const res = await fetch("/api/drop/current");
+        if (!res.ok) {
+          document.querySelector("main").innerHTML =
+            "<p>No current drop available.</p>";
+          return;
+        }
+
+        const drop = await res.json();
+        const heroContainer = document.getElementById("heroWrapper");
+        const categoriesContainer = document.getElementById("categories");
+
+        const formattedNum = String(drop.dropNumber).padStart(3, "0");
+
+        // Hero image = Art winner
+        const artWinner = drop.featured.find(
+          (f) => f.submission.category === "ART" && f.rank === 1
+        )?.submission;
+        if (artWinner) {
+          heroContainer.innerHTML = `
+            <img src="${artWinner.contentUrl}" alt="${artWinner.title}" />
+            <div class="drop-overlay">
+              <div class="drop-number">Drop ${formattedNum}.</div>
+              <div class="drop-dates">
+                ${new Date(drop.startsAt).toLocaleDateString(undefined, {
+                  month: "long",
+                  day: "numeric",
+                })}
+                –
+                ${new Date(drop.endsAt).toLocaleDateString(undefined, {
+                  month: "long",
+                  day: "numeric",
+                })}
+              </div>
+            </div>
+          `;
+        }
+
+        // Categories
+        const icons = {
+          MUSIC:
+            "https://arthousebucket.s3.us-east-2.amazonaws.com/web/record.png",
+          CINEMA: "/assets/icons/film.png",
+          FICTION: "/assets/icons/book.png",
+          ART: artWinner?.contentUrl || "/assets/icons/art.png",
+          POETRY: "/assets/icons/poetry.png",
+        };
+
+        const colors = {
+          MUSIC: "blue",
+          CINEMA: "orange",
+          FICTION: "red",
+          ART: "green",
+          POETRY: "darkorange",
+        };
+
+        for (const cat of ["MUSIC", "CINEMA", "FICTION", "ART", "POETRY"]) {
+          const winner = drop.featured.find(
+            (f) => f.submission.category === cat && f.rank === 1
+          )?.submission;
+
+          if (winner) {
+            const div = document.createElement("div");
+            div.className = "category";
+
+            if (cat === "FICTION" || cat === "POETRY") {
+              try {
+                const snippet = await getTextSnippet(winner.contentUrl, 25);
+                console.log(winner.contentUrl);
+                if (snippet) {
+                  div.innerHTML = `
+            ${createPaperSnippet(snippet)}
+            <a class="cat-link ${
+              colors[cat]
+            }" href="#">BEST ${cat} <span class="handwritten">→</span></a>
+          `;
+                } else {
+                  div.innerHTML = `
+            <img src="${icons[cat]}" alt="${cat} icon" />
+            <a class="cat-link ${colors[cat]}" href="#">BEST ${cat} <span class="handwritten">→</span></a>
+          `;
+                }
+              } catch (err) {
+                console.warn(`Failed to load snippet for ${cat}`, err);
+                div.innerHTML = `
+          <img src="${icons[cat]}" alt="${cat} icon" />
+          <a class="cat-link ${colors[cat]}" href="#">BEST ${cat} <span class="handwritten">→</span></a>
+        `;
+              }
+            } else if (cat === "CINEMA") {
+              makeVideoThumbnail(winner.contentUrl, 64, 64)
+                .then((thumb) => {
+                  div.innerHTML = `
+            <img src="${thumb}" alt="${cat} thumbnail" style="width:64px;height:64px;object-fit:cover;" />
+            <a class="cat-link ${colors[cat]}" href="#">BEST ${cat} <span class="handwritten">→</span></a>
+          `;
+                })
+                .catch(() => {
+                  div.innerHTML = `
+            <img src="${icons[cat]}" alt="${cat} icon" />
+            <a class="cat-link ${colors[cat]}" href="#">BEST ${cat} <span class="handwritten">→</span></a>
+          `;
+                });
+            } else {
+              div.innerHTML = `
+        <img src="${icons[cat]}" alt="${cat} icon" />
+        <a class="cat-link ${colors[cat]}" href="#">BEST ${cat} <span class="handwritten">→</span></a>
+      `;
+            }
+
+            categoriesContainer.appendChild(div);
+          }
+        }
+
+        document.getElementById("editorNote").innerHTML = `
+          <p><span class="handwritten">FROM THE EDITORS: </span> ${drop.editorNote}</p>
+        `;
+      } catch (err) {
+        console.error(err);
+        document.querySelector("main").innerHTML = "<p>Error loading drop.</p>";
+      }
+    }
+
+    function makeVideoThumbnail(url) {
+      return new Promise((resolve, reject) => {
+        const video = document.createElement("video");
+        video.crossOrigin = "anonymous";
+        video.src = url;
+        video.muted = true;
+        video.playsInline = true;
+
+        video.addEventListener(
+          "loadedmetadata",
+          () => {
+            const middle = isFinite(video.duration) ? video.duration / 2 : 1;
+
+            video.addEventListener(
+              "seeked",
+              () => {
+                try {
+                  // Capture at full video resolution
+                  const canvas = document.createElement("canvas");
+                  canvas.width = video.videoWidth;
+                  canvas.height = video.videoHeight;
+                  const ctx = canvas.getContext("2d");
+                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                  // Return full-res image
+                  resolve(canvas.toDataURL("image/jpeg", 0.9));
+                } catch (err) {
+                  reject(err);
+                }
+              },
+              { once: true }
+            );
+
+            video.currentTime = middle;
+          },
+          { once: true }
+        );
+
+        video.addEventListener("error", (e) => reject(e));
+      });
+    }
+
+    async function getTextSnippet(url, maxWords = 25) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return "";
+        const text = await res.text();
+        return text.split(/\s+/).slice(0, maxWords).join(" ");
+      } catch {
+        return "";
+      }
+    }
+
+    function createPaperSnippet(snippet) {
+      return `
+      <div class="paper-snippet">
+        <p>${snippet}</p>
+      </div>
+    `;
+    }
+
+    loadDrop();
+  </script>
+</html>

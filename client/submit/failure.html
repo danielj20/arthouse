@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Submission Failed — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Submission failed.</h1>
+      <p id="reason">We couldn’t upload your submission.</p>
+      <p><a href="/submit.html">Try again</a></p>
+    </main>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("reason")) {
+        document.getElementById("reason").textContent = decodeURIComponent(
+          params.get("reason")
+        );
+      }
+    </script>
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          // call into auth.js now that header exists
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+  </body>
+</html>

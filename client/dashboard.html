@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+    <style>
+      .tabs {
+        display: flex;
+        gap: 2rem;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 2rem;
+      }
+      .tab {
+        cursor: pointer;
+        font-size: 1.25rem;
+        font-weight: 500;
+        padding-bottom: 0.5rem;
+      }
+      .tab.active {
+        border-bottom: 2px solid black;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      th {
+        background: #f5f5f5;
+      }
+      .account-info {
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Artist Dashboard.</h1>
+      <div class="tabs">
+        <div class="tab active" data-target="submissions">Submissions</div>
+        <div class="tab" data-target="account">Account</div>
+      </div>
+
+      <section id="submissions" class="tab-content active">
+        <p>Here are your submissions and their current statuses.</p>
+        <table id="submissionsTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="account" class="tab-content">
+        <div class="account-info" id="accountInfo">
+          <p>Loading account info...</p>
+        </div>
+        <button id="logoutBtn">Log out</button>
+      </section>
+    </main>
+
+    <script>
+      // Tabs
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab, .tab-content")
+            .forEach((el) => el.classList.remove("active"));
+          tab.classList.add("active");
+          document.getElementById(tab.dataset.target).classList.add("active");
+        });
+      });
+
+      // Load submissions
+      async function loadSubmissions() {
+        try {
+          const res = await fetch("/api/submissions/mine");
+          if (!res.ok) {
+            document.querySelector("#submissions").innerHTML =
+              "<p>You must be logged in to see your submissions.</p>";
+            return;
+          }
+          const submissions = await res.json();
+          const tbody = document.querySelector("#submissionsTable tbody");
+
+          if (submissions.length === 0) {
+            tbody.innerHTML =
+              "<tr><td colspan='4'>No submissions yet.</td></tr>";
+            return;
+          }
+
+          submissions.forEach((sub) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${sub.title}</td>
+              <td>${sub.category}</td>
+              <td>${sub.status}</td>
+              <td>${new Date(sub.createdAt).toLocaleDateString()}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error(err);
+          document.querySelector("#submissions").innerHTML =
+            "<p>Error loading submissions.</p>";
+        }
+      }
+
+      // Load account info
+      async function loadAccount() {
+        try {
+          const res = await fetch("/api/auth/check");
+          if (!res.ok) {
+            document.querySelector("#accountInfo").innerHTML =
+              "<p>You must be logged in to see your account.</p>";
+            return;
+          }
+          const { user } = await res.json();
+          console.log(user);
+          document.querySelector("#accountInfo").innerHTML = `
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Display name:</strong> ${user.displayName || "—"}</p>
+            <p><strong>Role:</strong> ${user.role}</p>
+          `;
+        } catch (err) {
+          console.error(err);
+          document.querySelector("#accountInfo").innerHTML =
+            "<p>Error loading account info.</p>";
+        }
+      }
+
+      // Logout
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", async () => {
+          await fetch("/api/auth/logout", { method: "POST" });
+          window.location.href = "/";
+        });
+
+      loadSubmissions();
+      loadAccount();
+
+      // Header
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+  </body>
+</html>

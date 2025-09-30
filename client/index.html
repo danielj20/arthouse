@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+    <script defer src="/js/main.js"></script>
+  </head>
+  <body>
+    <main class="container-sm">
+      <h1 class="handwritten hero-text">
+        This is a website for the
+        <span class="header-emphasis">next generation of creatives</span> who
+        have more to say than they can fit in a
+        <span class="header-emphasis">10-second viral clip on TikTok</span>.
+      </h1>
+      <div class="pair-sm">
+        <p><a class="cta" href="/this-week.html">View this week’s drop →</a></p>
+        <p>
+          <a class="link hero-link-secondary" href="/submit.html"
+            >Submit your Work</a
+          >
+        </p>
+      </div>
+    </main>
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          // call into auth.js now that header exists
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+  </body>
+</html>

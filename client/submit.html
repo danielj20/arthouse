@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submit — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+  </head>
+  <body>
+    <!-- Header will load dynamically -->
+    <main class="container container-sm">
+      <section class="categories">
+        <a href="/submit/music.html" class="submit-link music"
+          ><span class="submit-link-text">SHARE MUSIC</span
+          ><span class="submit-arrow"> →</span></a
+        >
+        <a href="/submit/art.html" class="submit-link art"
+          ><span class="submit-link-text">SHARE ART</span
+          ><span class="submit-arrow"> →</span></a
+        >
+        <a href="/submit/fiction.html" class="submit-link fiction"
+          ><span class="submit-link-text">SHARE FICTION</span
+          ><span class="submit-arrow"> →</span></a
+        >
+        <a href="/submit/cinema.html" class="submit-link cinema"
+          ><span class="submit-link-text">SHARE CINEMA</span
+          ><span class="submit-arrow"> →</span></a
+        >
+        <a href="/submit/poetry.html" class="submit-link poetry"
+          ><span class="submit-link-text">SHARE POETRY</span
+          ><span class="submit-arrow"> →</span></a
+        >
+      </section>
+
+      <div class="article-container">
+        <div class="pair-sm">
+          <h1>Submissions.</h1>
+          <p class="sub">general guidelines</p>
+        </div>
+
+        <section class="guidelines">
+          <p>
+            At arthouse, we're looking for the next generation of artists, and
+            the next generation of art. Whatever you think that means is exactly
+            what it does. We're not looking for recycled renditions of stories
+            you heard in English class; we're not looking for traces of a
+            painting you had on a Pinterest board. Show us something that's
+            never been seen before, and you'll have good odds of making the
+            curated release at the end of the week.
+          </p>
+        </section>
+        <div class="pair-sm">
+          <p class="sub">categories</p>
+        </div>
+        <section class="guidelines">
+          <p>
+            We accept submissions in the following categories: music, art,
+            fiction, cinema, and poetry. Each category has its own submission
+            guidelines, so be sure to read them carefully before submitting:
+          </p>
+          <ul>
+            <li>
+              Music: 6 minutes in duration or less (.mp3 or .wav accepted)
+            </li>
+            <li>Fiction: 4000 words or less (.txt accepted)</li>
+            <li>Poetry: 300 words or less (.txt accepted)</li>
+            <li>Art: high-resolution image (.png, .jpeg accepted)</li>
+            <li>
+              Cinema: 6 minutes in duration or less (.mov or .mp4 accepted)
+            </li>
+          </ul>
+        </section>
+        <div class="pair-sm">
+          <p class="sub">additional notes</p>
+        </div>
+        <section class="guidelines">
+          <p>
+            All submissions must be the original work of the submitting artist.
+            By submitting your work, you affirm that you hold all necessary
+            rights to the content and that it does not infringe upon the rights
+            of any third party.
+          </p>
+          <br />
+          <p>
+            We accept submissions from artists worldwide. However, please note
+            that all submissions must be in English or include an English
+            translation.
+          </p>
+          <br />
+          <p>
+            By submitting your work, you agree to our terms and conditions,
+            which can be found on our website. Please read them carefully before
+            submitting.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          // call into auth.js now that header exists
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+  </body>
+</html>
