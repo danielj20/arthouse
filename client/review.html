@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Review — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <!-- keep header/auth behavior consistent with other pages -->
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+    <style>
+      /* Page shell (leans on globals.css container-sm) */
+      .review-page {
+        display: grid;
+        gap: 1.25rem;
+        margin-top: 2.5rem;
+      }
+
+      /* Hero */
+      .hero {
+        position: relative;
+        padding: 1rem 0 0.5rem;
+      }
+      .hero h1 {
+        font-size: 2.25rem;
+        line-height: 1.2;
+      }
+      .hero .sub {
+        color: #555;
+        margin-top: 0.25rem;
+      }
+
+      /* Celebration confetti (lightweight, unobtrusive) */
+      .confetti {
+        position: absolute;
+        inset: 0 -10vw 0 -10vw;
+        pointer-events: none;
+        overflow: visible;
+      }
+      .confetti i {
+        position: absolute;
+        top: -10px;
+        width: 8px;
+        height: 14px;
+        border-radius: 2px;
+        opacity: 0;
+        animation: fall 1800ms linear forwards;
+      }
+      @keyframes fall {
+        0% {
+          transform: translateY(-20px) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(110vh) rotate(720deg);
+          opacity: 0.9;
+        }
+      }
+
+      /* Card blocks */
+      .card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        padding: 1.25rem;
+      }
+      .meta-line {
+        color: #666;
+        font-size: 0.95rem;
+      }
+
+      /* Composite + rubric grid */
+      .score-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .composite {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+      }
+      .composite .number {
+        font-size: 2.75rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .composite .outof {
+        color: #777;
+      }
+
+      .rubrics {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .rubric-row {
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .rubric-name {
+        font-weight: 600;
+      }
+      .bar {
+        height: 10px;
+        background: #eee;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .bar > span {
+        display: block;
+        height: 100%;
+        background: #000; /* will be tinted by category class */
+        width: 0%;
+        transition: width 500ms ease;
+      }
+      .rubric-val {
+        font-variant-numeric: tabular-nums;
+        color: #444;
+        min-width: 3ch;
+        text-align: right;
+      }
+
+      /* Overall review content */
+      .overall {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .overall blockquote {
+        margin: 0;
+        background: #fff9ea;
+        border: 1px solid #f2d49a;
+        padding: 1rem 1rem 1rem 1.25rem;
+        border-radius: 0.75rem;
+        font-size: 1.05rem;
+        line-height: 1.5;
+      }
+      .overall audio,
+      .overall video {
+        width: 100%;
+        border-radius: 0.75rem;
+      }
+
+      /* Actions */
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .ghost {
+        background: #fff;
+        color: #000;
+        border: 1px solid #000;
+        padding: 0.65rem 1.25rem;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 1rem;
+      }
+
+      /* Category accent (reuse your globals color classes) */
+      .music .accent {
+        color: var(--music-color);
+      }
+      .art .accent {
+        color: var(--art-color);
+      }
+      .fiction .accent {
+        color: var(--fiction-color);
+      }
+      .cinema .accent {
+        color: var(--cinema-color);
+      }
+      .poetry .accent {
+        color: var(--poetry-color);
+      }
+      .music .bar > span {
+        background: var(--music-color);
+      }
+      .art .bar > span {
+        background: var(--art-color);
+      }
+      .fiction .bar > span {
+        background: var(--fiction-color);
+      }
+      .cinema .bar > span {
+        background: var(--cinema-color);
+      }
+      .poetry .bar > span {
+        background: var(--poetry-color);
+      }
+
+      /* Responsive tweaks */
+      @media (min-width: 860px) {
+        .score-wrap {
+          grid-template-columns: 280px 1fr;
+          align-items: start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container-sm review-page">
+      <!-- header loads dynamically to match other pages -->
+      <section class="hero">
+        <div class="confetti" aria-hidden="true" id="confetti"></div>
+        <h1><span>Your review is in.</span></h1>
+        <p class="sub" id="tagline">A curator took time with your work.</p>
+      </section>
+
+      <section class="card" id="about">
+        <h2 id="title">Loading…</h2>
+        <p class="meta-line" id="meta"></p>
+      </section>
+
+      <section class="card overall" id="overallCard">
+        <!-- overall content injected by JS -->
+      </section>
+
+      <section class="score-wrap" id="scores">
+        <div class="card">
+          <div class="composite">
+            <div class="number accent" id="composite">—</div>
+            <div class="outof">/ 100</div>
+          </div>
+          <p class="muted" style="margin-top: 0.25rem">
+            Composite reflects voice, craft, clarity, and affect.
+          </p>
+        </div>
+
+        <div class="card rubrics" id="rubricGrid">
+          <!-- rows injected by JS -->
+        </div>
+      </section>
+
+      <section class="actions">
+        <a class="cta" id="viewSubmission" href="#">View your submission →</a>
+        <a class="ghost" href="/dashboard.html">Back to dashboard</a>
+      </section>
+    </main>
+
+    <script>
+      const idFromPath = location.pathname.split("/").pop(); // typically submissionId (based on your route)
+      const $ = (sel) => document.querySelector(sel);
+
+      // Small, tasteful confetti burst on first paint (delighter / peak-end)
+      function burstConfetti() {
+        const root = $("#confetti");
+        if (!root) return;
+        const colors = ["#FFD166", "#EF476F", "#06D6A0", "#118AB2", "#F2C94C"];
+        const count = 28;
+        for (let i = 0; i < count; i++) {
+          const piece = document.createElement("i");
+          const left = Math.random() * 100;
+          const delay = Math.random() * 400;
+          const color = colors[i % colors.length];
+          piece.style.left = left + "vw";
+          piece.style.background = color;
+          piece.style.animationDelay = delay + "ms";
+          root.appendChild(piece);
+          setTimeout(() => piece.remove(), 2200);
+        }
+      }
+
+      function categoryClass(cat) {
+        return (cat || "").toLowerCase();
+      }
+      function setAccentClass(cat) {
+        const cls = categoryClass(cat);
+        document.querySelector("main").classList.add(cls);
+      }
+      function setHeroCopy(name) {
+        // gentle personalization
+        $(
+          "#tagline"
+        ).innerHTML = `A curator took time with <span class="handwritten">${
+          name || "your work"
+        }</span>.`;
+      }
+
+      function injectRubricRow(name, val) {
+        const row = document.createElement("div");
+        row.className = "rubric-row";
+        row.innerHTML = `
+          <div class="rubric-name">${name}</div>
+          <div class="bar"><span style="width: ${Math.max(
+            0,
+            Math.min(100, val)
+          )}%"></span></div>
+          <div class="rubric-val">${val}</div>
+        `;
+        $("#rubricGrid").appendChild(row);
+      }
+
+      async function loadReview() {
+        const res = await fetch(`/api/submissions/review/${idFromPath}`, {
+          credentials: "include",
+        });
+        if (!res.ok) {
+          document.body.querySelector(".review-page").innerHTML =
+            "<p>Review not found.</p>";
+          return;
+        }
+        const r = await res.json();
+
+        // category accent + hero
+        setHeroCopy(r.submissionTitle);
+
+        // about block
+        $("#title").textContent = r.submissionTitle;
+        $("#meta").textContent = `${r.submissionCategory} • Reviewed by ${
+          r.judgeName
+        } • ${new Date(r.createdAt).toLocaleDateString()}`;
+
+        // composite
+        const comp = r.composite != null ? Number(r.composite) : null;
+        $("#composite").textContent = comp != null ? comp : "—";
+
+        // rubrics
+        injectRubricRow("Voice", r.voice);
+        injectRubricRow("Craft", r.craft);
+        injectRubricRow("Clarity", r.clarity);
+        injectRubricRow("Affect", r.affect);
+
+        // overall
+        const card = $("#overallCard");
+        let html = `<h3 class="accent">Overall feedback</h3>`;
+        if (r.overallType === "TEXT" && r.overallText) {
+          html += `<blockquote>${r.overallText}</blockquote>`;
+        } else if (r.overallType === "AUDIO" && r.overallMediaUrl) {
+          html += `<audio controls src="${r.overallMediaUrl}"></audio>`;
+        } else if (r.overallType === "VIDEO" && r.overallMediaUrl) {
+          html += `<video controls src="${r.overallMediaUrl}"></video>`;
+        } else {
+          html += `<p class="muted">No overall comments provided.</p>`;
+        }
+        html += `<p class="muted" style="margin-top:.25rem">Reviewed by <strong>${r.judgeName}</strong></p>`;
+        card.innerHTML = html;
+
+        // CTA — link back to the submission (your route uses submissionId in path)
+        const submissionId = r.submissionId || idFromPath;
+        $("#viewSubmission").href = `/submission/${submissionId}`;
+
+        // celebration
+        requestAnimationFrame(burstConfetti);
+      }
+
+      // Load header to match other pages
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          window.authInit && window.authInit();
+        })
+        .catch(() => {});
+
+      loadReview();
+    </script>
+  </body>
+</html>

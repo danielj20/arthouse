@@ -1,0 +1,54 @@
+<form
+  id="cinemaForm"
+  action="/api/submissions/cinema"
+  method="POST"
+  enctype="multipart/form-data"
+>
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-instructions">
+      <p>
+        Drag + drop your file <span class="accepted">(.mov, .mp4 accepted)</span
+        ><br />
+        or <span class="upload-link">Upload from Computer</span>
+      </p>
+    </div>
+    <input type="file" name="file" accept=".mp4,.mov" hidden />
+    <div class="fileName"></div>
+  </div>
+  <label
+    ><p class="title"><b>Title</b></p>
+    <input
+      type="text"
+      name="title"
+      required
+      placeholder="The title of your work" /></label
+  ><br />
+  <label
+    ><p class="title"><b>Description</b></p>
+    <textarea
+      name="description"
+      required
+      placeholder="2-4 sentences. How did you make this piece? What inspired you? What should viewers know? Note: this isn't a promotional blurb, but rather context for your art."
+    ></textarea>
+    <p class="submit-note">
+      <b>Note:</b> This description WILL be shared with curators alongside your
+      art. For the sake of fair judging, do not include details that would
+      personally identify you. If you do, your art won't be judged.
+    </p> </label
+  ><br />
+  <label
+    ><p class="title"><b>Artist Bio</b></p>
+    <textarea
+      name="artistBio"
+      required
+      placeholder="2-4 sentences. Give your background as an artist... where are you from, what is unique about your upbringing?"
+    ></textarea>
+    <p class="submit-note">
+      <b>Note:</b> This bio will NOT be shared with curators alongside your art,
+      for the sake of fair judging.
+    </p> </label
+  ><br />
+  <div class="button-container">
+    <button type="submit">Share your Film</button>
+  </div>
+</form>

@@ -1,6 +1,8 @@
 import { Router } from "express";
 import multer from "multer";
 import { requireAuth } from "../../middleware/auth.js";
+import { attachUserIfPresent } from "../../middleware/auth.js";
+
 import { uploadFileToS3 } from "../../config/s3.js";
 import prisma from "../../config/db.js";
 import path from "path";
@@ -115,6 +117,50 @@ router.post("/:category", requireAuth, upload.single("file"), async (req, res) =
   }
 });
 
+router.get("/pending", async (req, res) => {
+  try {
+    const submissions = await prisma.submission.findMany({
+      where: { status: "PENDING" },
+      include: { author: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // map into a cleaner shape
+    const formatted = await Promise.all(
+      submissions.map(async (s) => {
+        let snippet = null;
+
+        if ((s.category === "FICTION" || s.category === "POETRY") && s.contentUrl) {
+          try {
+            const resp = await fetch(s.contentUrl);
+            const text = await resp.text();
+            snippet = text.slice(0, 600); // ~600 chars ≈ 80–100 words
+          } catch {
+            snippet = null;
+          }
+        }
+
+        return {
+          id: s.id,
+          title: s.title,
+          category: s.category,
+          contentUrl: s.contentUrl,
+          description: s.description,
+          createdAt: s.createdAt,
+          authorName: s.author.displayName || s.author.email || "Anonymous",
+          snippet,
+        };
+      })
+    );
+
+    res.json(formatted);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not load submissions" });
+  }
+});
+
+
 router.get("/mine", requireAuth, async (req, res) => {
   try {
     const submissions = await prisma.submission.findMany({
@@ -127,6 +173,147 @@ router.get("/mine", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch submissions" });
   }
 });
+
+router.get("/:id", attachUserIfPresent, async (req, res) => {
+  const s = await prisma.submission.findUnique({
+    where: { id: req.params.id },
+    include: {
+      author: true,
+      comments: { include: { author: true }, orderBy: { createdAt: "asc" } },
+      applause: true,
+      reviews: true,
+    },
+  });
+  if (!s) return res.status(404).json({ error: "Not found" });
+
+  const applauseCount = s.applause.length;
+  const hasApplauded = !!(req.user && s.applause.some(a => a.userId === req.user.id));
+
+  res.json({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    category: s.category,
+    status: s.status,
+    description: s.description,
+    contentUrl: s.contentUrl,
+    wordCount: s.wordCount,
+    durationSec: s.durationSec,
+    artistBio: s.artistBio,
+    createdAt: s.createdAt,
+    author: {
+      id: s.author.id,
+      displayName: s.author.displayName,
+      email: s.author.email,
+    },
+    applauseCount,
+    hasApplauded, // 👈 add this
+    comments: s.comments.map(c => ({
+      id: c.id,
+      content: c.content,
+      createdAt: c.createdAt,
+      authorName: c.author.displayName || c.author.email || "Anonymous",
+    })),
+  });
+});
+
+
+
+// ===== Comment on a submission =====
+router.post("/:id/comment", requireAuth, async (req, res) => {
+  try {
+    const content = (req.body?.content || "").trim();
+    if (!content) return res.status(400).json({ error: "Comment cannot be empty." });
+
+    const sub = await prisma.submission.findUnique({ where: { id: req.params.id } });
+    if (!sub) return res.status(404).json({ error: "Submission not found." });
+
+    const comment = await prisma.comment.create({
+      data: {
+        content,                 // <-- required field in your schema
+        submissionId: sub.id,
+        authorId: req.user.id,
+      },
+      include: { author: true },
+    });
+
+    res.json({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      authorName: comment.author.displayName || comment.author.email || "Anonymous",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to post comment." });
+  }
+});
+
+
+// ===== Applaud / toggle applause =====
+router.post("/:id/applaud", requireAuth, async (req, res) => {
+  try {
+    const sub = await prisma.submission.findUnique({ where: { id: req.params.id } });
+    if (!sub) return res.status(404).json({ error: "Submission not found." });
+
+    // Toggle using your @@unique([submissionId, userId]) constraint
+    const existing = await prisma.applause.findFirst({
+      where: { submissionId: sub.id, userId: req.user.id },
+    });
+
+    if (existing) {
+      await prisma.applause.delete({ where: { id: existing.id } });
+    } else {
+      await prisma.applause.create({
+        data: { submissionId: sub.id, userId: req.user.id },
+      });
+    }
+
+    const applauseCount = await prisma.applause.count({
+  where: { submissionId: sub.id },
+});
+const hasApplauded = !existing; // true if they just added applause
+
+res.json({ applauseCount, hasApplauded });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to toggle applause." });
+  }
+});
+router.get("/review/:id", async (req, res) => {
+  try {
+    const review = await prisma.review.findFirst({
+      where: { submissionId: req.params.id },
+      include: {
+        submission: { select: { title: true, category: true } },
+        judge: { select: { displayName: true, email: true } },
+      },
+    });
+
+    if (!review) return res.status(404).json({ error: "Review not found" });
+
+    res.json({
+      id: review.id,
+      submissionTitle: review.submission.title,
+      submissionCategory: review.submission.category,
+      judgeName: review.judge.displayName || review.judge.email,
+      overallType: review.overallType,
+      overallText: review.overallText,
+      overallMediaUrl: review.overallMediaUrl,
+      overallMediaSec: review.overallMediaSec,
+      voice: review.voice,
+      craft: review.craft,
+      clarity: review.clarity,
+      affect: review.affect,
+      composite: review.composite,
+      createdAt: review.createdAt,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load review" });
+  }
+});
+
 
 
 export default router;

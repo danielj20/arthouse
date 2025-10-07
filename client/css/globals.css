@@ -1,14 +1,28 @@
 @import url("header.css");
 @import url("submit.css");
 @import url("this-week.css");
+@import url("landing.css");
+@import url("community.css");
 
 :root {
-  --bg: #f8f7f3;
+  --bg: #F8F8F4;
   --text: #0b0b0b;
   --accent: #000;
   --kern: -0.05em;
   /* -5% tracking */
+  --music-color: #0056ff;   /* Blue */
+  --art-color: #1f8a3e;     /* Green */
+  --fiction-color: #b22222; /* Red */
+  --cinema-color: #f39c12;  /* Orange */
+  --poetry-color: #ff6600;  /* Bright orange */
 }
+
+.music   { color: #0056ff; }   /* Blue */
+.art     { color: #1f8a3e; }   /* Green */
+.fiction { color: #b22222; }   /* Red */
+.cinema  { color: #f39c12; }   /* Orange */
+.poetry  { color: #ff6600; }   /* Bright orange */
+
 
 * {
   box-sizing: border-box
@@ -59,7 +73,7 @@ a {
 
 h1 {
   font-weight: 700;
-  font-size: 2rem;
+  font-size: 2.5rem;
 }
 
 h1, h2, h3, h4, p {
@@ -91,7 +105,7 @@ textarea {
 
 
 .sub {
-  font-weight: 300;
+  font-weight: 200;
   font-size: 1.5rem
 }
 
@@ -102,9 +116,29 @@ textarea {
   background-position: 0 0.9em; 
 }
 
+.handwritten, .handwritten-1, .handwritten-2, .handwritten-3 {
+  letter-spacing: normal;
+}
+
 .handwritten {
   font-family: "MANIC", "Helvetica Neue", "Helvetica", Arial, sans-serif;
   letter-spacing: normal;
+}
+
+.handwritten-1 {
+  font-family: "MANIC Alternates 1", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+}
+
+.handwritten-2 {
+  font-family: "MANIC Alternates 2", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+}
+
+.handwritten-3 {
+  font-family: "MANIC Alternates 3", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+}
+
+.handwritten-sketches {
+  font-family: "MANIC Sketches", "Helvetica Neue", "Helvetica", Arial, sans-serif;
 }
 
 .hero-text {
@@ -128,7 +162,11 @@ textarea {
   text-decoration: none;
   text-align: start;
   font-family: "Helvetica Neue", "Helvetica", Arial, sans-serif;
+  font-weight: 300;
 }
+
+.cta:hover { transform: translateY(-1px); opacity: .92; }
+
 
 
 
@@ -152,6 +190,189 @@ th {
   background: #f5f5f5;
 }
 
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+/* Base tab style */
+.tab {
+  text-decoration: none;   /* no underline */
+  padding: 0.5rem;
+  font-weight: bold;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* Active tab */
+.tab.active {
+  border-bottom-color: currentColor; /* match text color */
+}
+
+/* Category colors (reuse same as submit.html buttons) */
+.tab.music {
+  color: var(--music-color, blue);
+}
+
+.tab.art {
+  color: var(--art-color, green);
+}
+
+.tab.fiction {
+  color: var(--fiction-color, red);
+}
+
+.tab.cinema {
+  color: var(--cinema-color, orange);
+}
+
+.tab.poetry {
+  color: var(--poetry-color, darkorange);
+}
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      th {
+        background: #f5f5f5;
+      }
+      .account-info {
+        line-height: 1.6;
+      }
+
+
+      .upload-zone {
+  border: 2px dashed #aaa;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.upload-zone.dragover {
+  background: #f9f9f9;
+  border-color: #333;
+}
+
+.upload-zone p {
+  margin: 0;
+  font-size: 1rem;
+  color: #444;
+}
+
+.upload-zone .accepted {
+  font-style: italic;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.upload-link, .review-link {
+  text-decoration: underline;
+  color: var(--music-color);
+  cursor: pointer;
+}
+
+#fileName {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #222;
+}
+
+.upload-preview {
+  text-align: center;
+}
+
+.preview-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.preview-wrapper p {
+  font-size: 0.8rem;
+}
+
+.preview-img {
+  max-width: 64px;
+  max-height: 64px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+.audio-icon, .generic-icon {
+  font-size: 2rem;
+}
+
+.file-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.choose-different {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #0073e6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- judge panel small controls --- */
+.tag {
+  /* override global button defaults */
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #111 !important;
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tag[aria-pressed="true"] {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+.muted {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.submission-snippet {
+  white-space: pre-wrap;   /* keep line breaks, wrap long lines */
+  word-wrap: break-word;   /* break long words if needed */
+  font-family: "EB Garamond", Georgia, 'Times New Roman', Times, serif;
+  font-size: 1rem;
+  background: #FFF9EA;
+  padding: 1rem;
+  box-shadow: inset 0 0 20px rgba(255, 127, 17, 0.25);
+  letter-spacing: normal;
+  line-height: 1.3rem;
+  margin: 0;
+}
 
 @media (max-width: 768px) {
   .container, .container-sm {
@@ -166,10 +387,187 @@ th {
 }
 
 @font-face {
-  font-family: "MANIC";
-  src: url("/fonts/MANIC.otf") format("opentype");
+  font-family: "EB Garamond";
+  src: url("/fonts/EB Garamond/EBGaramond-VariableFont_wght.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
   font-display: swap;
 }
+
+/* MANIC Regular */
+@font-face {
+  font-family: "MANIC";
+  src: url("/fonts/MANIC/MANIC.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* MANIC Alternates 1 */
+@font-face {
+  font-family: "MANIC Alternates 1";
+  src: url("/fonts/MANIC/MANIC-Alternates1.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* MANIC Alternates 2 */
+@font-face {
+  font-family: "MANIC Alternates 2";
+  src: url("/fonts/MANIC/MANIC-Alternates2.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* MANIC Alternates 3 */
+@font-face {
+  font-family: "MANIC Alternates 3";
+  src: url("/fonts/MANIC/MANIC-Alternates3.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* MANIC Sketches */
+@font-face {
+  font-family: "MANIC Sketches";
+  src: url("/fonts/MANIC/MANIC-Sketches.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* Helvetica Neue Thin */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueThin.otf") format("opentype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueThinItalic.otf") format("opentype");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue UltraLight */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueUltraLight.otf") format("opentype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueUltraLightItalic.otf") format("opentype");
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue Light */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueLight.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueLightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue Roman (Regular) */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueRoman.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueItalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue Medium */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueMedium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueMediumItalic.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue Bold */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueBold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueBoldItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue Heavy */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueHeavy.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueHeavyItalic.otf") format("opentype");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Helvetica Neue Black */
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueBlack.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("/fonts/Helvetica Neue/HelveticaNeueBlackItalic.otf") format("opentype");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 
 
 .google-container {

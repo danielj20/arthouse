@@ -5,52 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dashboard — arthouse</title>
     <link rel="stylesheet" href="/css/globals.css" />
+    <link rel="icon" type="image/png" href="images/logo.png" />
     <script defer src="/js/auth.js"></script>
     <script defer src="/js/header.js"></script>
-    <style>
-      .tabs {
-        display: flex;
-        gap: 2rem;
-        border-bottom: 1px solid #ccc;
-        margin-bottom: 2rem;
-      }
-      .tab {
-        cursor: pointer;
-        font-size: 1.25rem;
-        font-weight: 500;
-        padding-bottom: 0.5rem;
-      }
-      .tab.active {
-        border-bottom: 2px solid black;
-      }
-      .tab-content {
-        display: none;
-      }
-      .tab-content.active {
-        display: block;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-      }
-      th,
-      td {
-        border: 1px solid #ccc;
-        padding: 0.5rem;
-        text-align: left;
-      }
-      th {
-        background: #f5f5f5;
-      }
-      .account-info {
-        line-height: 1.6;
-      }
-    </style>
   </head>
   <body>
     <main class="container">
-      <h1>Artist Dashboard.</h1>
+      <h1>Artist Dashboard</h1>
       <div class="tabs">
         <div class="tab active" data-target="submissions">Submissions</div>
         <div class="tab" data-target="account">Account</div>
@@ -111,12 +72,20 @@
 
           submissions.forEach((sub) => {
             const tr = document.createElement("tr");
+
+            // If reviewed, link to review page
+            const statusCell =
+              sub.status === "REVIEWED"
+                ? `<a class="review-link" href="/review/${sub.id}" class="review-link">REVIEWED</a>`
+                : sub.status;
+
             tr.innerHTML = `
-              <td>${sub.title}</td>
-              <td>${sub.category}</td>
-              <td>${sub.status}</td>
-              <td>${new Date(sub.createdAt).toLocaleDateString()}</td>
-            `;
+    <td>${sub.title}</td>
+    <td>${sub.category}</td>
+    <td>${statusCell}</td>
+    <td>${new Date(sub.createdAt).toLocaleDateString()}</td>
+  `;
+
             tbody.appendChild(tr);
           });
         } catch (err) {

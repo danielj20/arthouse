@@ -37,7 +37,12 @@ router.get(
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     });
-    res.redirect("/auth/success.html");
+
+    if (req.user.isNew) {
+      res.redirect("/auth/success.html");
+    } else {
+      res.redirect("/dashboard.html");
+    }
   }
 );
 
@@ -64,7 +69,7 @@ router.post("/signup", async (req, res) => {
 
     // issue JWT + cookie
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, displayName: user.displayName, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -74,6 +79,28 @@ router.post("/signup", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.redirect("/auth/signup.html?error=Signup+failed");
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, displayName: user.displayName, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "Login failed" });
   }
 });
 

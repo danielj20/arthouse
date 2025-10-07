@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Share — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+  </head>
+  <body>
+    <main class="container container-sm">
+      <h1>Share your art.</h1>
+
+      <nav class="tabs">
+        <a href="?medium=music" id="tab-music" class="tab music">MUSIC</a>
+        <a href="?medium=art" id="tab-art" class="tab art">ART</a>
+        <a href="?medium=fiction" id="tab-fiction" class="tab fiction"
+          >FICTION</a
+        >
+        <a href="?medium=cinema" id="tab-cinema" class="tab cinema">CINEMA</a>
+        <a href="?medium=poetry" id="tab-poetry" class="tab poetry">POETRY</a>
+      </nav>
+
+      <div id="formContainer" class="form-container">
+        <!-- The form for the chosen medium loads here -->
+      </div>
+    </main>
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          // call into auth.js now that header exists
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+
+    <script type="module">
+      import { initUploadZone } from "/js/upload-zone.js";
+
+      const params = new URLSearchParams(window.location.search);
+      const medium = params.get("medium") || "music";
+
+      // Map allowed extensions for each medium
+      const extMap = {
+        art: [".png", ".jpg", ".jpeg"],
+        music: [".mp3", ".wav"],
+        cinema: [".mp4"],
+        fiction: [".txt", ".pdf"],
+        poetry: [".txt", ".pdf"],
+      };
+
+      async function loadForm(medium) {
+        try {
+          const res = await fetch(`/partials/forms/${medium}.html`);
+          const html = await res.text();
+          document.getElementById("formContainer").innerHTML = html;
+
+          // after injecting form, bind upload zone
+          initUploadZone("uploadZone", extMap[medium] || []);
+
+          // highlight active tab
+          document
+            .querySelectorAll(".tabs .tab")
+            .forEach((a) => a.classList.remove("active"));
+          document.getElementById(`tab-${medium}`).classList.add("active");
+        } catch (err) {
+          document.getElementById("formContainer").innerHTML =
+            "<p>Could not load form.</p>";
+        }
+      }
+
+      loadForm(medium);
+    </script>
+  </body>
+</html>

@@ -18,7 +18,7 @@
   margin: 0;
   padding: 0;
   display: flex;
-  font-weight: 200;
+  font-weight: 300;
   gap: 1rem;
 }
 
@@ -72,7 +72,7 @@ ul.nav-right a, ul.nav-left a {
   display: none;
   flex-direction: column;
   background: var(--bg);
-  padding: 1rem;
+      padding: 0rem 1rem 1rem;
 }
 .mobile-menu a {
   padding: 0.5rem 0;
@@ -94,7 +94,7 @@ ul.nav-right a, ul.nav-left a {
     animation: slideDown 0.3s ease forwards;
   }
   .mobile-menu a {
-    font-weight: 200;
+    font-weight: 300;
     font-size: 1.2rem;
   }
 }

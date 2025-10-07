@@ -3,21 +3,66 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login Success — arthouse</title>
+    <title>Welcome — arthouse</title>
     <link rel="stylesheet" href="/css/globals.css" />
     <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+    <style>
+      .success-wrapper {
+        align-items: center;
+      }
+      .success-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        letter-spacing: normal;
+      }
+      .success-content {
+        text-align: center;
+      }
+      .success-content .sub {
+        font-weight: 300;
+      }
+      .cta-group {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .secondary {
+        color: black;
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body>
-    <main class="container">
-      <h1>✅ You’re logged in!</h1>
-      <p>
-        Welcome to arthouse. You can now submit your work or explore this week’s
-        drop.
-      </p>
-      <p>
-        <a class="cta" href="/submit.html">Go to submissions</a> &nbsp;
-        <a href="/">Back to home</a>
+    <main class="container container-sm success-wrapper">
+      <div class="success-icon">🎞️ 🎨 📝 📜 🎶</div>
+      <div class="pair-sm success-content">
+        <h1>Welcome to Arthouse</h1>
+        <p class="sub">
+          You’ve joined a growing circle of artists, writers, and musicians.
+          Every work here will be seen, curated, and considered.
+        </p>
+      </div>
+
+      <div class="cta-group">
+        <a class="cta" href="/community.html">View the Community →</a>
+        <a class="cta" href="/submit.html">Submit Your First Work →</a>
+      </div>
+
+      <p style="margin-top: 2rem">
+        <a class="secondary" href="/">Back to Home</a>
       </p>
     </main>
   </body>
+  <script>
+    fetch("/partials/header.html")
+      .then((r) => r.text())
+      .then((html) => {
+        document.body.insertAdjacentHTML("afterbegin", html);
+        // call into auth.js now that header exists
+        window.authInit && window.authInit();
+      })
+      .catch((err) => console.error("Header load failed:", err));
+  </script>
 </html>

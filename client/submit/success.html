@@ -3,29 +3,107 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Success — arthouse</title>
+    <title>Submitted — arthouse</title>
     <link rel="stylesheet" href="/css/globals.css" />
     <script defer src="/js/auth.js"></script>
     <script defer src="/js/header.js"></script>
+
+    <style>
+      .success-wrap {
+        max-width: 860px;
+        margin: 3rem auto;
+        padding: 0 1.25rem;
+      }
+
+      .success-hero {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .success-hero h1 {
+        font-size: clamp(2.4rem, 5vw, 3rem);
+        margin: 0.5rem 0;
+      }
+      .success-hero p {
+        font-size: 1.2rem;
+        margin: 0.6rem 0 0;
+        color: #333;
+      }
+
+      .social-proof {
+        background: #f8f8f8;
+        border: 1px solid #e4e4e4;
+        padding: 1.25rem;
+        border-radius: 4px;
+        margin: 2rem 0;
+      }
+      .social-proof h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.3rem;
+      }
+      .social-proof p {
+        margin: 0.6rem 0;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .secondary-link {
+        display: block;
+        margin-top: 2rem;
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
-    <main class="container">
-      <h1>Submission successful.</h1>
-      <p>
-        Your artwork has been uploaded and is now pending review. We'll send you
-        an email when its status is changed.
-      </p>
-      <p><a href="/">Back to home</a></p>
+    <main class="success-wrap">
+      <!-- HERO -->
+      <div class="success-hero">
+        <div style="font-size: 3rem">🎉</div>
+        <h1>Thanks for sharing your art.</h1>
+        <p>
+          It’s now pending review. Every submission on arthouse is seen — and
+          your work is on its way to our curators.
+        </p>
+      </div>
+
+      <!-- SOCIAL PROOF -->
+      <div class="social-proof">
+        <h2>Who will see your work?</h2>
+        <p>
+          Submissions are reviewed by a rotating panel of curators — professors,
+          writers, musicians, filmmakers, and artists from across disciplines.
+        </p>
+        <p>
+          Their role: surface work that deserves to be in the next week’s drop.
+        </p>
+        <p>
+          We'll notify view when your art is reviewed, and if it’s selected.
+        </p>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <a href="/community.html" class="cta">View Other Submissions →</a>
+        <a href="/dashboard.html" class="cta">Go to Dashboard →</a>
+      </div>
+
+      <div class="secondary-link">
+        <a href="/">← Back to home</a>
+      </div>
     </main>
+
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          window.authInit && window.authInit();
+        });
+    </script>
   </body>
-  <script>
-    fetch("/partials/header.html")
-      .then((r) => r.text())
-      .then((html) => {
-        document.body.insertAdjacentHTML("afterbegin", html);
-        // call into auth.js now that header exists
-        window.authInit && window.authInit();
-      })
-      .catch((err) => console.error("Header load failed:", err));
-  </script>
 </html>

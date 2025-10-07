@@ -14,7 +14,7 @@
         <h1>Join arthouse.</h1>
         <p>Enter a community of creators, dreamers, and radical thinkers.</p>
       </div>
-      <form action="/api/auth/signup" method="POST">
+      <form action="/api/auth/signup" method="POST" id="signupForm">
         <label>
           Email
           <input type="email" name="email" required />
@@ -78,6 +78,25 @@
       </p>
     </main>
   </body>
+  <script>
+    document
+      .getElementById("signupForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email.value,
+            password: form.password.value,
+            displayName: form.displayName.value,
+          }),
+        });
+        if (res.ok) window.location = "/auth/success.html";
+        else alert("Signup failed");
+      });
+  </script>
   <script>
     fetch("/partials/header.html")
       .then((r) => r.text())

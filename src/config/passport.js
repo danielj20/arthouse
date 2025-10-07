@@ -19,6 +19,7 @@ passport.use(
           where: { email: profile.emails[0].value },
         });
 
+        let isNew = false;
         if (!user) {
           user = await prisma.user.create({
             data: {
@@ -28,14 +29,17 @@ passport.use(
               password: "", // Google users don’t need password
             },
           });
+          isNew = true;
         }
 
-        return done(null, user);
+        // attach flag so callback knows
+        return done(null, { ...user, isNew });
       } catch (err) {
         return done(err, null);
       }
     }
   )
 );
+
 
 export default passport;

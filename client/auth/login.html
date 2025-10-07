@@ -87,10 +87,13 @@
           const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: form.email.value }),
+            body: JSON.stringify({
+              email: form.email.value,
+              password: form.password.value,
+            }),
           });
           if (res.ok) {
-            window.location = "/";
+            window.location = "/dashboard.html";
           } else {
             alert("Login failed");
           }

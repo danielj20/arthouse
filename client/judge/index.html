@@ -1,15 +1,947 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Judge — arthouse</title>
-  <link rel="stylesheet" href="/css/globals.css">
-</head>
-<body>
-  <main class="container">
-    <h1>Judge Console</h1>
-    <p>Private area for scoring and feedback.</p>
-  </main>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Judge Panel — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <style>
+      /* Layout */
+      .judge-wrap {
+        max-width: 1200px;
+        margin: 2.5rem auto;
+        padding: 0 1rem;
+      }
+      .judge-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        gap: 2rem;
+        align-items: start;
+      }
+      label.help-question {
+        display: flex;
+        flex-direction: row;
+      }
+      @media (max-width: 1000px) {
+        .judge-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Work card */
+      .work {
+        background: #fff;
+        border: 1px solid #e6e6e6;
+      }
+      .work header {
+        padding: 1rem 1rem 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .title {
+        font-size: 1.25rem;
+        margin: 0 0 0.25rem;
+        letter-spacing: -0.01em;
+      }
+      .meta {
+        color: #555;
+        font-size: 0.95rem;
+      }
+      .desc {
+        color: #333;
+        padding: 1rem;
+        border-bottom: 1px solid #f4f4f4;
+      }
+      .tab[aria-selected="true"] {
+        font-weight: 600;
+        border-bottom: 2px solid #111;
+      }
+      /* Viewer */
+      .viewer {
+        display: grid;
+        place-items: center;
+        background: #fafafa;
+        border: 1px solid #eee;
+        min-height: 52vh;
+        padding: 1rem;
+      }
+      .viewer img,
+      .viewer video,
+      .viewer audio {
+        max-width: 100%;
+        max-height: 70vh;
+      }
+      .viewer pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: "EB Garamond", Georgia, serif;
+        background: #fffdf7;
+        border: 1px solid #eee;
+        width: 100%;
+        max-height: 65vh;
+        overflow: auto;
+        padding: 1rem;
+        line-height: 1.6;
+      }
+
+      /* Right column */
+      .panel {
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        padding: 1rem;
+        display: grid;
+        gap: 1rem;
+      }
+      .block {
+        border: 1px dashed #eee;
+        padding: 1rem;
+      }
+      .block h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+      }
+      .req {
+        font-size: 0.8rem;
+        color: #666;
+      }
+
+      .overall-area textarea {
+        width: 100%;
+        min-height: 120px;
+      }
+
+      /* Recording UI */
+      .record-box {
+        display: grid;
+        gap: 0.5rem;
+      }
+      .record-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .rec-dot {
+        width: 10px;
+        height: 10px;
+        background: #d33;
+        border-radius: 50%;
+        animation: blink 1s infinite alternate;
+        visibility: hidden;
+      }
+      .rec-dot.on {
+        visibility: visible;
+      }
+      @keyframes blink {
+        from {
+          opacity: 0.35;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .media-preview {
+        font-size: 0.9rem;
+        color: #333;
+      }
+
+      /* Rubrics */
+      .rubrics {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .rub-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .rub-ctrl {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .rub-ctrl input[type="range"] {
+        width: 240px;
+      }
+      .rub-val {
+        min-width: 3ch;
+        text-align: right;
+      }
+      .help {
+        font-size: 0.85rem;
+        color: #666;
+        margin-left: 0.25rem;
+        cursor: help;
+        border-bottom: 1px dotted #aaa;
+      }
+
+      /* Footer */
+      .controls {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .controls .muted {
+        margin-right: auto;
+      }
+
+      /* WaveSurfer layering: keep under any modal (future-proof) */
+      #waveform,
+      #waveform canvas {
+        position: relative;
+        z-index: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="judge-wrap">
+      <div class="pair-sm" style="margin-bottom: 1rem">
+        <h1>Judge Panel</h1>
+        <p class="sub">Overall response + four dials are required.</p>
+      </div>
+
+      <section id="empty" class="container-card" hidden>
+        <h2>No more pending pieces</h2>
+        <p>Everything’s been reviewed—check back soon.</p>
+        <a href="/this-week.html" class="cta">View this week’s gallery</a>
+      </section>
+
+      <section id="panel" class="judge-grid" hidden>
+        <!-- Left: Work viewer -->
+        <article class="work">
+          <header>
+            <h2 class="title" id="title">—</h2>
+            <p class="meta" id="meta">—</p>
+          </header>
+          <p class="desc" id="desc"></p>
+          <div class="viewer" id="viewer">Loading…</div>
+        </article>
+
+        <!-- Right: Overall + Rubrics -->
+        <aside class="panel">
+          <section class="block">
+            <h3>Response</h3>
+
+            <div class="tabs" role="tablist" aria-label="Overall response type">
+              <a class="tab" id="tab-text" role="tab" aria-selected="true">
+                Text
+              </a>
+              <a class="tab" id="tab-audio" role="tab" aria-selected="false">
+                Audio
+              </a>
+              <a class="tab" id="tab-video" role="tab" aria-selected="false">
+                Video
+              </a>
+            </div>
+
+            <!-- TEXT -->
+            <div
+              id="overall-text"
+              class="overall-area"
+              role="tabpanel"
+              aria-labelledby="tab-text"
+            >
+              <textarea
+                id="overallText"
+                placeholder="A short, honest note to the artist. What stayed with you?"
+              ></textarea>
+            </div>
+
+            <!-- AUDIO -->
+            <div
+              id="overall-audio"
+              class="overall-area"
+              hidden
+              role="tabpanel"
+              aria-labelledby="tab-audio"
+            >
+              <div class="record-box">
+                <div class="record-row">
+                  <span class="rec-dot" id="audDot"></span>
+                  <button id="audRec" class="cta">Record</button>
+                  <button id="audStop" class="ghost" disabled>Stop</button>
+                  <span class="media-preview" id="audInfo">No take</span>
+                </div>
+                <audio id="audPlay" controls hidden></audio>
+              </div>
+            </div>
+
+            <!-- VIDEO -->
+            <div
+              id="overall-video"
+              class="overall-area"
+              hidden
+              role="tabpanel"
+              aria-labelledby="tab-video"
+            >
+              <div class="record-box">
+                <div class="record-row">
+                  <span class="rec-dot" id="vidDot"></span>
+                  <button id="vidRec" class="cta">Record</button>
+                  <button id="vidStop" class="ghost" disabled>Stop</button>
+                  <span class="media-preview" id="vidInfo">No take</span>
+                </div>
+                <video
+                  id="vidPlay"
+                  controls
+                  hidden
+                  style="max-width: 100%"
+                ></video>
+              </div>
+            </div>
+          </section>
+
+          <section class="block">
+            <h3>Rubrics <span class="req">(required)</span></h3>
+            <div class="rubrics">
+              <div class="rub-row">
+                <label class="help-question"
+                  >Voice
+                  <span
+                    class="help"
+                    title="Originality & point of view; risk and authorship."
+                    >?</span
+                  ></label
+                >
+                <div class="rub-ctrl">
+                  <input
+                    id="rubVoice"
+                    type="range"
+                    min="1"
+                    max="100"
+                    value="50"
+                  />
+                  <span class="rub-val" id="valVoice">50</span>
+                </div>
+              </div>
+              <div class="rub-row">
+                <label class="help-question"
+                  >Craft
+                  <span
+                    class="help"
+                    title="Technique and control: mix/editing/line work/pacing."
+                    >?</span
+                  ></label
+                >
+                <div class="rub-ctrl">
+                  <input
+                    id="rubCraft"
+                    type="range"
+                    min="1"
+                    max="100"
+                    value="50"
+                  />
+                  <span class="rub-val" id="valCraft">50</span>
+                </div>
+              </div>
+              <div class="rub-row">
+                <label class="help-question"
+                  >Clarity
+                  <span
+                    class="help"
+                    title="Structure, coherence, intent; does it land cleanly?"
+                    >?</span
+                  ></label
+                >
+                <div class="rub-ctrl">
+                  <input
+                    id="rubClarity"
+                    type="range"
+                    min="1"
+                    max="100"
+                    value="50"
+                  />
+                  <span class="rub-val" id="valClarity">50</span>
+                </div>
+              </div>
+              <div class="rub-row">
+                <label class="help-question"
+                  >Affect
+                  <span
+                    class="help"
+                    title="Emotional/visceral impact; the afterglow."
+                    >?</span
+                  ></label
+                >
+                <div class="rub-ctrl">
+                  <input
+                    id="rubAffect"
+                    type="range"
+                    min="1"
+                    max="100"
+                    value="50"
+                  />
+                  <span class="rub-val" id="valAffect">50</span>
+                </div>
+              </div>
+            </div>
+            <div class="composite">
+              Composite: <span id="compositeOut">50.0</span> / 100
+            </div>
+          </section>
+          <section class="block">
+            <span class="muted" id="reqHint"
+              >Overall response + all four rubrics are required.</span
+            >
+          </section>
+
+          <div class="controls">
+            <button id="btnSubmit" class="cta">Submit review →</button>
+            <button id="btnSkip" class="ghost">Skip</button>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <!-- WaveSurfer (core only — no regions/annotations) -->
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script>
+      // ---------- AUTH GUARD ----------
+      async function guard() {
+        try {
+          const r = await fetch("/api/auth/check", { credentials: "include" });
+          if (!r.ok) throw 0;
+          const { user } = await r.json();
+          if (user.role !== "JUDGE" && user.role !== "ADMIN") {
+            window.location = "/auth/failure.html?msg=Judges+only";
+            return false;
+          }
+          return true;
+        } catch {
+          window.location = "/auth/login.html?reason=Please+log+in";
+          return false;
+        }
+      }
+
+      // ---------- STATE ----------
+      let current = null; // current submission
+      let overallType = "TEXT"; // TEXT | AUDIO | VIDEO
+      let overallTextVal = "";
+      let overallMediaBlob = null; // Blob from MediaRecorder
+      let overallMediaUrl = null; // preview ObjectURL
+      let overallMediaSec = null; // rough seconds (filled on recorder stop)
+
+      // Music player (WaveSurfer) — simple playback only
+      let ws = null;
+      function destroyWaveform() {
+        try {
+          ws && ws.destroy();
+        } catch {}
+        ws = null;
+      }
+
+      // ---------- UTIL ----------
+      const $ = (id) => document.getElementById(id);
+      const fmtTime = (s) => {
+        const m = Math.floor(s / 60),
+          ss = String(Math.floor(s % 60)).padStart(2, "0");
+        return `${m}:${ss}`;
+      };
+      function syncVal(inputId, outId, cb) {
+        const el = $(inputId),
+          out = $(outId);
+        const fn = () => {
+          out.textContent = el.value;
+          cb && cb();
+        };
+        el.addEventListener("input", fn);
+        fn();
+      }
+      function computeComposite() {
+        const v = +$("rubVoice").value,
+          c = +$("rubCraft").value,
+          cl = +$("rubClarity").value,
+          a = +$("rubAffect").value;
+        const avg = (v + c + cl + a) / 4;
+        $("compositeOut").textContent = avg.toFixed(1);
+        return avg;
+      }
+
+      // ---------- MEDIA RECORDING (overall) ----------
+      async function record(
+        kind,
+        dotEl,
+        recBtn,
+        stopBtn,
+        playEl,
+        infoEl,
+        onDone
+      ) {
+        try {
+          const constraints =
+            kind === "audio" ? { audio: true } : { audio: true, video: true };
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          const mr = new MediaRecorder(stream);
+          const chunks = [];
+
+          mr.ondataavailable = (e) => chunks.push(e.data);
+          mr.onstart = () => {
+            dotEl.classList.add("on");
+            recBtn.disabled = true;
+            stopBtn.disabled = false;
+          };
+          mr.onstop = () => {
+            dotEl.classList.remove("on");
+            recBtn.disabled = false;
+            stopBtn.disabled = true;
+            const blob = new Blob(chunks, { type: mr.mimeType });
+            const url = URL.createObjectURL(blob);
+            playEl.src = url;
+            playEl.hidden = false;
+
+            const secGuess = Math.max(
+              1,
+              Math.round(
+                chunks.reduce((n, c) => n + c.size, 0) /
+                  (kind === "audio" ? 32000 : 80000)
+              )
+            );
+            infoEl.textContent = `Ready • ~${secGuess}s`;
+            onDone({ blob, url, sec: secGuess });
+
+            stream.getTracks().forEach((t) => t.stop());
+          };
+
+          mr.start();
+          stopBtn.onclick = () => mr.stop();
+        } catch (e) {
+          infoEl.textContent = "Recorder unavailable";
+        }
+      }
+
+      async function uploadReviewMedia(
+        fileOrBlob,
+        { filename = "overall", mime, submissionId = "unknown" } = {}
+      ) {
+        const rawType = (
+          mime ||
+          (fileOrBlob && fileOrBlob.type) ||
+          ""
+        ).toLowerCase();
+        const baseType = rawType.split(";")[0]; // strip ";codecs=..."
+
+        // choose extension by baseType
+        const ext =
+          baseType === "video/mp4"
+            ? ".mp4"
+            : baseType === "video/webm"
+            ? ".webm"
+            : baseType === "audio/mp4"
+            ? ".m4a"
+            : baseType === "audio/mpeg"
+            ? ".mp3"
+            : baseType === "audio/wav"
+            ? ".wav"
+            : baseType === "audio/webm"
+            ? ".webm"
+            : "";
+
+        const safeName = filename.replace(/\.[a-z0-9]+$/i, ""); // drop any provided ext
+        const finalName = `${safeName}${ext || ""}`;
+
+        const file =
+          fileOrBlob instanceof Blob
+            ? new File([fileOrBlob], finalName, {
+                type: baseType || rawType || "application/octet-stream",
+              })
+            : fileOrBlob;
+
+        const form = new FormData();
+        form.append("file", file);
+        form.append("scope", "overall");
+        form.append("submissionId", submissionId);
+
+        const r = await fetch("/api/reviews/upload", {
+          method: "POST",
+          body: form,
+          credentials: "include",
+        });
+        if (!r.ok) {
+          const msg = await r.text().catch(() => "");
+          throw new Error(msg || "Upload failed");
+        }
+        return r.json(); // { url, durationSec? }
+      }
+
+      // ---------- LOAD NEXT ----------
+      async function loadNext(afterId = null) {
+        // reset overall UI state
+        overallType = "TEXT";
+        overallTextVal = "";
+        overallMediaBlob = overallMediaUrl = overallMediaSec = null;
+        ["tab-text", "tab-audio", "tab-video"].forEach((id) =>
+          $(id).setAttribute("aria-selected", String(id === "tab-text"))
+        );
+        $("overall-text").hidden = false;
+        $("overall-audio").hidden = true;
+        $("overall-video").hidden = true;
+        $("overallText").value = "";
+        $("audInfo").textContent = "No take";
+        $("audPlay").hidden = true;
+        $("audStop").disabled = true;
+        $("vidInfo").textContent = "No take";
+        $("vidPlay").hidden = true;
+        $("vidStop").disabled = true;
+
+        // fetch next
+        const qs = new URLSearchParams();
+        if (afterId) qs.set("after", afterId);
+        const r = await fetch(`/api/judge/next?${qs.toString()}`, {
+          credentials: "include",
+        });
+        if (r.status === 404 || !r.ok) {
+          $("panel").style.display = "none";
+          $("empty").style.display = "flex";
+          return;
+        }
+        const { submission } = await r.json();
+        current = submission;
+
+        $("title").textContent = submission.title;
+        $(
+          "meta"
+        ).textContent = `${submission.category} • by ${submission.author.name}`;
+        $("desc").textContent = submission.description || "";
+
+        renderViewer(submission);
+        $("panel").style.display = "grid";
+        $("empty").style.display = "none";
+      }
+
+      // ---------- VIEWER ----------
+      function renderViewer(sub) {
+        destroyWaveform();
+        const v = $("viewer");
+        v.innerHTML = "";
+
+        if (sub.category === "ART") {
+          const img = new Image();
+          img.src = sub.contentUrl;
+          img.alt = sub.title;
+          v.appendChild(img);
+        } else if (sub.category === "MUSIC") {
+          const aud = document.createElement("audio");
+          aud.controls = true;
+          aud.preload = "metadata";
+          aud.src = sub.contentUrl;
+          v.appendChild(aud);
+        } else if (sub.category === "CINEMA") {
+          const vid = document.createElement("video");
+          vid.controls = true;
+          vid.preload = "metadata";
+          vid.src = sub.contentUrl;
+          vid.style.maxWidth = "100%";
+          v.appendChild(vid);
+        } else if (sub.category === "FICTION" || sub.category === "POETRY") {
+          fetch(sub.contentUrl)
+            .then((r) => r.text())
+            .then((text) => {
+              const pre = document.createElement("pre");
+              pre.textContent = text;
+              v.appendChild(pre);
+            })
+            .catch(() => {
+              v.textContent = "Could not load text.";
+            });
+        } else {
+          v.textContent = "Unsupported category.";
+        }
+      }
+
+      // ---------- OVERALL RESPONSE TABS ----------
+      $("tab-text").onclick = () => {
+        overallType = "TEXT";
+        $("tab-text").setAttribute("aria-selected", "true");
+        $("tab-audio").setAttribute("aria-selected", "false");
+        $("tab-video").setAttribute("aria-selected", "false");
+        $("overall-text").hidden = false;
+        $("overall-audio").hidden = true;
+        $("overall-video").hidden = true;
+      };
+      $("tab-audio").onclick = () => {
+        overallType = "AUDIO";
+        $("tab-text").setAttribute("aria-selected", "false");
+        $("tab-audio").setAttribute("aria-selected", "true");
+        $("tab-video").setAttribute("aria-selected", "false");
+        $("overall-text").hidden = true;
+        $("overall-audio").hidden = false;
+        $("overall-video").hidden = true;
+      };
+      $("tab-video").onclick = () => {
+        overallType = "VIDEO";
+        $("tab-text").setAttribute("aria-selected", "false");
+        $("tab-audio").setAttribute("aria-selected", "false");
+        $("tab-video").setAttribute("aria-selected", "true");
+        $("overall-text").hidden = true;
+        $("overall-audio").hidden = true;
+        $("overall-video").hidden = false;
+      };
+
+      // text overall
+      $("overallText").addEventListener(
+        "input",
+        () => (overallTextVal = $("overallText").value)
+      );
+
+      // audio overall
+      $("audRec").onclick = () =>
+        record(
+          "audio",
+          $("audDot"),
+          $("audRec"),
+          $("audStop"),
+          $("audPlay"),
+          $("audInfo"),
+          ({ blob, url, sec }) => {
+            overallMediaBlob = blob;
+            overallMediaUrl = url;
+            overallMediaSec = sec;
+          }
+        );
+      // video overall
+      // ---------- VIDEO RECORDING WITH MODAL + REDO ----------
+
+      let activeStream = null;
+      let activeRecorder = null;
+
+      $("vidRec").onclick = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          });
+          activeStream = stream;
+
+          // show modal and live preview
+          $("livePreview").srcObject = stream;
+          $("videoModal").hidden = false;
+          $("vidInfo").textContent = "Recording…";
+          $("vidRec").disabled = true;
+          $("vidDot").classList.add("on");
+
+          const recorder = new MediaRecorder(stream);
+          const chunks = [];
+
+          recorder.ondataavailable = (e) => chunks.push(e.data);
+          recorder.onstop = () => {
+            $("vidDot").classList.remove("on");
+            $("videoModal").hidden = true;
+            $("vidRec").disabled = false;
+
+            const blob = new Blob(chunks, { type: recorder.mimeType });
+            const url = URL.createObjectURL(blob);
+            const sec = Math.round(
+              chunks.reduce((n, c) => n + c.size, 0) / 80000
+            );
+
+            $("vidPlay").src = url;
+            $("vidPlay").hidden = false;
+            $("vidInfo").textContent = `Ready • ~${sec}s`;
+
+            overallMediaBlob = blob;
+            overallMediaUrl = url;
+            overallMediaSec = sec;
+
+            cleanupStream();
+            showRedoButton();
+          };
+
+          activeRecorder = recorder;
+          recorder.start();
+
+          // stop button inside modal
+          $("btnStopVideo").onclick = () => {
+            if (activeRecorder?.state === "recording") activeRecorder.stop();
+          };
+
+          // cancel button inside modal
+          $("btnCancelVideo").onclick = cancelVideoRecording;
+        } catch (err) {
+          console.error("Video recording failed:", err);
+          $("vidInfo").textContent = "Camera unavailable.";
+          cleanupStream();
+        }
+      };
+
+      function cancelVideoRecording() {
+        if (activeRecorder?.state === "recording") {
+          activeRecorder.stop();
+        }
+        cleanupStream();
+        $("videoModal").hidden = true;
+        $("vidInfo").textContent = "Canceled.";
+        $("vidPlay").hidden = true;
+        overallMediaBlob = null;
+        overallMediaUrl = null;
+        overallMediaSec = null;
+      }
+
+      function cleanupStream() {
+        if (activeStream) {
+          activeStream.getTracks().forEach((t) => t.stop());
+          activeStream = null;
+        }
+        activeRecorder = null;
+      }
+
+      function showRedoButton() {
+        let redo = document.getElementById("vidRedo");
+        if (!redo) {
+          redo = document.createElement("button");
+          redo.id = "vidRedo";
+          redo.className = "ghost";
+          redo.textContent = "Redo";
+          $("vidInfo").insertAdjacentElement("afterend", redo);
+          redo.onclick = () => {
+            overallMediaBlob = null;
+            overallMediaUrl = null;
+            overallMediaSec = null;
+            $("vidPlay").hidden = true;
+            $("vidInfo").textContent = "No take.";
+            redo.remove();
+          };
+        }
+      }
+
+      // ---------- RUBRICS ----------
+      syncVal("rubVoice", "valVoice", computeComposite);
+      syncVal("rubCraft", "valCraft", computeComposite);
+      syncVal("rubClarity", "valClarity", computeComposite);
+      syncVal("rubAffect", "valAffect", computeComposite);
+      computeComposite();
+
+      // ---------- VALIDATION ----------
+      function hasOverall() {
+        if (overallType === "TEXT") {
+          return (overallTextVal || $("overallText").value).trim().length >= 10;
+        } else {
+          return !!overallMediaBlob; // must have a recording
+        }
+      }
+
+      function getRubrics() {
+        return {
+          voice: +$("rubVoice").value,
+          craft: +$("rubCraft").value,
+          clarity: +$("rubClarity").value,
+          affect: +$("rubAffect").value,
+        };
+      }
+
+      // ---------- SUBMIT ----------
+      $("btnSubmit").onclick = async () => {
+        if (!current) return;
+        if (!hasOverall()) {
+          alert("Add your overall response (text/audio/video).");
+          return;
+        }
+
+        $("btnSubmit").disabled = true;
+
+        try {
+          let overall = {};
+          if (overallType === "TEXT") {
+            overall = {
+              type: "TEXT",
+              text: ($("overallText").value || overallTextVal).trim(),
+            };
+          } else {
+            const take = await uploadReviewMedia(overallMediaBlob, {
+              filename:
+                overallType === "AUDIO" ? "overall.m4a" : "overall.webm",
+              mime: overallMediaBlob.type,
+              submissionId: current.id,
+            });
+            overall = {
+              type: overallType,
+              mediaUrl: take.url,
+              mediaSec: take.durationSec ?? overallMediaSec ?? null,
+            };
+          }
+
+          const payload = {
+            submissionId: current.id,
+            overall,
+            rubrics: getRubrics(),
+          };
+          const r = await fetch("/api/judge/reviews", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload),
+          });
+          if (!r.ok) {
+            const msg = await r.text().catch(() => "");
+            throw new Error(msg || "Could not save review.");
+          }
+
+          // load next
+          await loadNext(current.id);
+        } catch (e) {
+          console.error(e);
+          alert(e.message || "Upload failed");
+        } finally {
+          $("btnSubmit").disabled = false;
+        }
+      };
+
+      $("btnSkip").onclick = () => loadNext(current?.id || null);
+
+      // ---------- INIT ----------
+      (async () => {
+        if (await guard()) loadNext();
+      })();
+    </script>
+    <!-- Video Recording Modal -->
+    <div id="videoModal" class="modal" hidden>
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <h3>Recording in Progress</h3>
+        <video id="livePreview" autoplay muted playsinline></video>
+        <div class="modal-controls">
+          <button id="btnStopVideo" class="cta">Stop</button>
+          <button id="btnCancelVideo" class="ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        z-index: 2000;
+      }
+      .modal[hidden] {
+        display: none;
+      }
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .modal-content {
+        position: relative;
+        background: #fff;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.25);
+        display: grid;
+        gap: 1rem;
+        max-width: 480px;
+        width: 100%;
+        z-index: 1;
+      }
+      #livePreview {
+        width: 100%;
+        background: #000;
+        border-radius: 0.25rem;
+      }
+      .modal-controls {
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </body>
 </html>

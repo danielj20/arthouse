@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Community — Arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <script defer src="/js/auth.js"></script>
+  </head>
+  <body>
+    <main class="community">
+      <div class="pair-sm community-header">
+        <h1>Community</h1>
+        <p class="sub">
+          Discover works currently under review by our curators.
+        </p>
+      </div>
+
+      <section id="feed" class="feed"></section>
+    </main>
+
+    <script>
+      async function loadSubmissions() {
+        try {
+          const res = await fetch("/api/submissions/pending");
+          if (!res.ok) throw new Error("Failed to load submissions");
+          const subs = await res.json();
+
+          const feed = document.getElementById("feed");
+          feed.innerHTML = "";
+
+          subs.forEach((sub) => {
+            const card = document.createElement("article");
+            card.className = "submission-card";
+
+            // Different preview depending on category
+            let previewHtml = "";
+            if (sub.category === "ART") {
+              previewHtml = `<img src="${sub.contentUrl}" alt="${sub.title}" />`;
+            } else if (sub.category === "CINEMA") {
+              previewHtml = `
+              <video muted playsinline>
+                <source src="${sub.contentUrl}" type="video/mp4"/>
+              </video>`;
+            } else if (sub.category === "MUSIC") {
+              previewHtml = `
+              <div class="record-wrapper">
+                <img src="/images/record.png" alt="Record" class="record-img" />
+                <button class="record-btn" aria-label="Play/Pause"></button>
+                <audio src="${sub.contentUrl}"></audio>
+              </div>`;
+            } else if (
+              sub.category === "FICTION" ||
+              sub.category === "POETRY"
+            ) {
+              previewHtml = `
+                <pre class="community-snippet">${
+                  sub.snippet || "Preview not available."
+                }</pre>
+                `;
+            }
+
+            card.innerHTML = `
+            <div class="preview">${previewHtml}</div>
+            <div class="meta">
+              <h2>${sub.title}</h2>
+              <p class="author">by ${sub.authorName || "Anonymous"}</p>
+              <a href="/submission/${
+                sub.id
+              }" class="view-link">View Submission <span class="handwritten">→</span></a>
+            </div>
+          `;
+            feed.appendChild(card);
+          });
+
+          // hook up music play/pause logic
+          document.querySelectorAll(".record-wrapper").forEach((wrapper) => {
+            const btn = wrapper.querySelector(".record-btn");
+            const audio = wrapper.querySelector("audio");
+            const record = wrapper.querySelector(".record-img");
+
+            btn.addEventListener("click", () => {
+              if (audio.paused) {
+                audio.play();
+                record.classList.add("spinning");
+                btn.classList.add("pause");
+              } else {
+                audio.pause();
+                record.classList.remove("spinning");
+                btn.classList.remove("pause");
+              }
+            });
+          });
+        } catch (err) {
+          console.error(err);
+          document.getElementById("feed").innerHTML =
+            "<p>Could not load submissions.</p>";
+        }
+      }
+
+      loadSubmissions();
+    </script>
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          // call into auth.js now that header exists
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+  </body>
+</html>

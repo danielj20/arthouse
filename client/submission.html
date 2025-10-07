@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Submission — arthouse</title>
+    <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
+    <style>
+      .submission-view {
+        max-width: 800px;
+        margin: 3rem auto;
+      }
+      .submission-view header {
+        border-bottom: 1px solid #eee;
+      }
+      .submission-view .meta {
+        color: #666;
+        font-size: 0.9rem;
+      }
+      .submission-view img,
+      .submission-view video,
+      .submission-view audio {
+        max-width: 100%;
+        display: block;
+        margin: 0 auto;
+      }
+      .comment-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      textarea {
+        width: 100%;
+        min-height: 80px;
+        resize: vertical;
+      }
+      .comments {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .comment {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f3f3f3;
+      }
+      .comment .meta {
+        font-size: 0.8rem;
+        color: #888;
+        margin-bottom: 0.25rem;
+      }
+      #desc-container {
+        background: #fafafa;
+        border: 1px solid #eee;
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+      #viewer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .applaud {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #f6f6f6;
+        border: 1px solid #ddd;
+        border-radius: 999px;
+        padding: 0.75rem 2rem;
+        cursor: pointer;
+        font-size: 1rem;
+        color: black;
+        font-weight: 500;
+      }
+      .applaud.active {
+        background: #fffaeb;
+        border-color: #f4c542;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container-sm submission-view">
+      <div class="pair-sm">
+        <h1 id="title">Loading...</h1>
+        <p class="sub" id="meta"></p>
+      </div>
+
+      <section class="content">
+        <section id="viewer">Loading content...</section>
+        <p id="desc-container">
+          <span class="handwritten-3">In the artist's words: </span
+          ><span id="desc"></span>
+        </p>
+      </section>
+
+      <div class="actions">
+        <button id="btnApplaud" class="applaud">
+          👏 <span id="applauseCount">0</span>
+        </button>
+      </div>
+
+      <section class="comments" id="commentsSection">
+        <h3>Comments</h3>
+        <div id="commentForm" class="comment-box" hidden>
+          <textarea
+            id="commentText"
+            placeholder="Write a comment..."
+          ></textarea>
+          <button id="btnComment">Post Comment</button>
+        </div>
+        <div id="commentList"></div>
+
+        <p id="loginPrompt" hidden>
+          <a href="/auth/login.html">Log in</a> to comment or applaud.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const id = location.pathname.split("/").pop();
+      let user = null;
+
+      // ---------- AUTH CHECK ----------
+      async function fetchUser() {
+        try {
+          const r = await fetch("/api/auth/check", { credentials: "include" });
+          if (!r.ok) return null;
+          const { user: u } = await r.json();
+          return u;
+        } catch {
+          return null;
+        }
+      }
+
+      // ---------- LOAD SUBMISSION ----------
+      async function loadSubmission() {
+        const r = await fetch(`/api/submissions/${id}`, {
+          credentials: "include",
+        });
+        if (!r.ok) {
+          $("viewer").textContent = "Not found.";
+          return;
+        }
+        const sub = await r.json();
+
+        $("title").textContent = sub.title;
+        $("meta").textContent = `${sub.category} - by ${
+          sub.author.displayName || "Anonymous"
+        } - ${new Date(sub.createdAt).toLocaleDateString()}`;
+        $("desc").textContent = sub.description || "";
+
+        const v = $("viewer");
+        v.innerHTML = "";
+
+        // ---------- DISPLAY MEDIA ----------
+        if (sub.category === "ART") {
+          const img = new Image();
+          img.src = sub.contentUrl;
+          img.alt = sub.title;
+          v.appendChild(img);
+        } else if (sub.category === "MUSIC") {
+          const wrapper = document.createElement("div");
+          wrapper.className = "record-wrapper";
+
+          wrapper.innerHTML = `
+          <img src="/images/record.png" alt="Record" class="record-img" />
+          <button class="record-btn" aria-label="Play/Pause"></button>
+          <audio src="${sub.contentUrl}"></audio>
+        `;
+          v.appendChild(wrapper);
+
+          // Add play/pause logic
+          const btn = wrapper.querySelector(".record-btn");
+          const audio = wrapper.querySelector("audio");
+          const record = wrapper.querySelector(".record-img");
+
+          btn.addEventListener("click", () => {
+            if (audio.paused) {
+              audio.play();
+              record.classList.add("spinning");
+              btn.classList.add("pause");
+            } else {
+              audio.pause();
+              record.classList.remove("spinning");
+              btn.classList.remove("pause");
+            }
+          });
+        } else if (sub.category === "CINEMA") {
+          const video = document.createElement("video");
+          video.controls = true;
+          video.src = sub.contentUrl;
+          v.appendChild(video);
+        } else if (sub.category === "FICTION" || sub.category === "POETRY") {
+          fetch(sub.contentUrl)
+            .then((r) => r.text())
+            .then((text) => {
+              const pre = document.createElement("pre");
+              pre.textContent = text;
+              pre.classList.add("submission-snippet");
+              v.appendChild(pre);
+            })
+            .catch(() => (v.textContent = "Could not load text."));
+        }
+
+        $("applauseCount").textContent = sub.applauseCount || 0;
+        if (sub.hasApplauded) {
+          $("btnApplaud").classList.add("active");
+        } else {
+          $("btnApplaud").classList.remove("active");
+        }
+        renderComments(sub.comments || []);
+      }
+
+      // ---------- RENDER COMMENTS ----------
+      function renderComments(list) {
+        const cList = $("commentList");
+        cList.innerHTML = "";
+        if (!list.length) {
+          cList.textContent = "No comments yet.";
+          return;
+        }
+        for (const c of list) {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+              <div class="meta">${c.authorName} • ${new Date(
+            c.createdAt
+          ).toLocaleString()}</div>
+              <div>${c.content}</div>
+            `;
+          cList.appendChild(div);
+        }
+      }
+
+      // ---------- APPLAUD ----------
+      $("btnApplaud").onclick = async () => {
+        if (!user) {
+          window.location.href = "/auth/signup.html";
+          return;
+        }
+        const r = await fetch(`/api/submissions/${id}/applaud`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (r.ok) {
+          const { applauseCount, hasApplauded } = await r.json();
+          $("applauseCount").textContent = applauseCount;
+          $("btnApplaud").classList.toggle("active", !!hasApplauded);
+        }
+      };
+
+      // ---------- COMMENT ----------
+      $("btnComment").onclick = async () => {
+        const content = $("commentText").value.trim();
+        if (!content) return;
+        const r = await fetch(`/api/submissions/${id}/comment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ content }),
+        });
+        if (r.ok) {
+          $("commentText").value = "";
+
+          // get the new comment object directly from API
+          const newComment = await r.json();
+
+          // dynamically append the new comment without reloading everything
+          const cList = $("commentList");
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+          <div class="meta">${newComment.authorName} • ${new Date(
+            newComment.createdAt
+          ).toLocaleString()}</div>
+          <div>${newComment.content}</div>
+        `;
+          if (cList.textContent === "No comments yet.") cList.textContent = "";
+          cList.appendChild(div);
+        } else {
+          alert("Please log in to comment.");
+        }
+      };
+
+      // ---------- INITIALIZE ----------
+      (async () => {
+        user = await fetchUser();
+        if (user) {
+          $("commentForm").hidden = false;
+        } else {
+          $("loginPrompt").hidden = false;
+          $("commentForm").style.display = "none";
+        }
+        loadSubmission();
+      })();
+    </script>
+    <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          // call into auth.js now that header exists
+          window.authInit && window.authInit();
+        })
+        .catch((err) => console.error("Header load failed:", err));
+    </script>
+  </body>
+</html>

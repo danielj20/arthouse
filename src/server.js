@@ -39,6 +39,16 @@ app.use("/api", apiRouter);
 // web routes (optional server-rendered helpers)
 app.use("/", webRouter);
 
+app.get("/submission/:id", (req, res) => {
+  const filePath = path.join(CLIENT_DIR, "submission.html");
+  res.sendFile(filePath);
+});
+
+app.get("/review/:id", (req, res) => {
+  const filePath = path.join(CLIENT_DIR, "review.html");
+  res.sendFile(filePath);
+});
+
 // fallback to index.html for simple pages
 app.use((req, res, next) => {
   const p = path.join(CLIENT_DIR, "index.html");
