@@ -28,6 +28,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(compression());
 
+app.set("trust proxy", 1);
+
+
 app.use(passport.initialize());
 
 // static site

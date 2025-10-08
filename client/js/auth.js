@@ -5,10 +5,8 @@ window.authInit = async function () {
   const joinMobile = document.getElementById("join-link-mobile");
   const dashboardMobile = document.getElementById("dashboard-link-mobile");
   try {
-    const res = await fetch("/api/auth/check"); // same-origin sends cookies
-    console.log(res);
-    if (res.url !== "http://localhost:3000/auth/login.html?reason=Please+log+in+to+submit+your+work") {
-      // logged in: show "my submissions", hide "about us"
+    const res = await fetch("/api/auth/check", { credentials: "include" });
+    if (res.ok) {
       if (join) join.style.display = "none";
       if (dashboard) dashboard.style.display = "inline-block";
       if (joinMobile) joinMobile.style.display = "none";

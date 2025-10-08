@@ -47,10 +47,16 @@ router.get(
 );
 
 // Real auth check using JWT cookie
-router.get("/check", requireAuth, (req, res) => {
-  res.json({ ok: true, user: req.user });
-});
-
+ router.get("/check", (req, res) => {
+   try {
+     const token = req.cookies?.token;
+     if (!token) return res.status(401).json({ ok: false });
+     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+     return res.json({ ok: true, user: decoded });
+   } catch {
+     return res.status(401).json({ ok: false });
+   }
+ });
 router.post("/signup", async (req, res) => {
   try {
     const { email, password, displayName } = req.body;
@@ -106,8 +112,12 @@ router.post("/login", async (req, res) => {
 
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.json({ ok: true });
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
 });
 
 export default router;
