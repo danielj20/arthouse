@@ -384,7 +384,6 @@
               >Overall response + all four rubrics are required.</span
             >
           </section>
-
           <div class="controls">
             <button id="btnSubmit" class="cta">Submit review →</button>
             <button id="btnSkip" class="ghost">Skip</button>
@@ -392,9 +391,6 @@
         </aside>
       </section>
     </main>
-
-    <!-- WaveSurfer (core only — no regions/annotations) -->
-    <script src="https://unpkg.com/wavesurfer.js@7"></script>
     <script>
       // ---------- AUTH GUARD ----------
       async function guard() {
@@ -402,7 +398,7 @@
           const r = await fetch("/api/auth/check", { credentials: "include" });
           if (!r.ok) throw 0;
           const { user } = await r.json();
-          if (user.role !== "JUDGE" && user.role !== "ADMIN") {
+          if (user.role !== "JUDGE") {
             window.location = "/auth/failure.html?msg=Judges+only";
             return false;
           }

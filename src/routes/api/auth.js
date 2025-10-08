@@ -80,7 +80,12 @@ router.post("/signup", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie("token", token, {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+});
     return res.redirect("/dashboard.html");
   } catch (err) {
     console.error(err);
@@ -103,7 +108,12 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
+    res.cookie("token", token, {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+});
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: "Login failed" });
@@ -118,6 +128,7 @@ router.post("/logout", (req, res) => {
     secure: process.env.NODE_ENV === "production",
     path: "/",
   });
+  res.json({ ok: true });
 });
 
 export default router;
