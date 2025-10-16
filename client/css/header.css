@@ -1,4 +1,4 @@
-.header {
+.header:not(.header-landing) {
   background: var(--bg);
   position: sticky;
   top: 0;

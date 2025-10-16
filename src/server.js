@@ -9,6 +9,8 @@ import compression from "compression";
 import dotenv from "dotenv";
 import apiRouter from "./routes/api/index.js";
 import webRouter from "./routes/web/index.js";
+import { transporter } from "./utils/emails.js";
+
 
 import passport from "./config/passport.js";
 

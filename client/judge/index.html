@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Judge Panel — arthouse</title>
     <link rel="stylesheet" href="/css/globals.css" />
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/header.js"></script>
     <style>
       /* Layout */
       .judge-wrap {
@@ -939,5 +941,14 @@
         justify-content: space-between;
       }
     </style>
+  </body>
+  <script>
+      fetch("/partials/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("afterbegin", html);
+          window.authInit && window.authInit();
+        });
+    </script>
   </body>
 </html>

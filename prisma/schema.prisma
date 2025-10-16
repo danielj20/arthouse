@@ -19,6 +19,15 @@ enum Role {
   ADMIN
 }
 
+model VerificationCode {
+  id        String   @id @default(cuid())
+  code      String
+  email     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+}
+
 enum Category {
   MUSIC
   ART

@@ -90,9 +90,10 @@ export function initUploadZone(zoneId, allowedExts = []) {
     changeLink.className = "choose-different";
     changeLink.textContent = "Choose a Different File";
     changeLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      input.click();
-    });
+  e.preventDefault();
+  e.stopPropagation(); // 🚫 prevent double popup
+  input.click();
+});
 
     preview.appendChild(wrapper);
     preview.appendChild(changeLink);

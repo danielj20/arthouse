@@ -1,4 +1,9 @@
-<form action="/api/submissions/art" method="POST" enctype="multipart/form-data">
+<form
+  id="artForm"
+  action="/api/submissions/art"
+  method="POST"
+  enctype="multipart/form-data"
+>
   <div class="upload-zone" id="uploadZone">
     <div class="upload-instructions">
       <p>
@@ -44,43 +49,6 @@
     </p> </label
   ><br />
   <div class="button-container">
-    <button type="submit">Share your Art</button>
+    <button type="submit">Share your Film</button>
   </div>
 </form>
-<script>
-  const uploadZone = document.getElementById("uploadZone");
-  const fileInput = document.getElementById("fileInput");
-  const uploadLink = document.getElementById("uploadLink");
-  const fileName = document.getElementById("fileName");
-
-  // Highlight when dragging
-  uploadZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    uploadZone.classList.add("dragover");
-  });
-
-  uploadZone.addEventListener("dragleave", () => {
-    uploadZone.classList.remove("dragover");
-  });
-
-  // Handle drop
-  uploadZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    uploadZone.classList.remove("dragover");
-
-    if (e.dataTransfer.files.length) {
-      fileInput.files = e.dataTransfer.files;
-      fileName.textContent = `Selected: ${fileInput.files[0].name}`;
-    }
-  });
-
-  // Clickable upload link
-  uploadLink.addEventListener("click", () => fileInput.click());
-
-  // Sync input with file name
-  fileInput.addEventListener("change", () => {
-    if (fileInput.files.length) {
-      fileName.textContent = `Selected: ${fileInput.files[0].name}`;
-    }
-  });
-</script>

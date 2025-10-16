@@ -12,7 +12,7 @@ window.authInit = async function () {
       if (joinMobile) joinMobile.style.display = "none";
       if (dashboardMobile) dashboardMobile.style.display = "block";
     } else {
-      // logged out: show "about us", hide "my submissions"
+      // logged out
       if (join) join.style.display = "inline-block";
       if (dashboard) dashboard.style.display = "none";
       if (joinMobile) joinMobile.style.display = "block";

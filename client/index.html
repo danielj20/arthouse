@@ -4,74 +4,62 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>arthouse</title>
-    <link rel="stylesheet" href="/css/globals.css" />
     <link rel="stylesheet" href="/css/landing.css" />
+    <link rel="icon" type="image/png" href="images/logo.png" />
     <script defer src="/js/auth.js"></script>
     <script defer src="/js/header.js"></script>
   </head>
   <body>
     <main class="landing-wall">
+      <div class="background-video">
+        <video id="bgVideo" autoplay muted playsinline></video>
+      </div>
+
       <section class="landing-panel hero" aria-labelledby="hero-title">
-        <div class="grain"></div>
         <h1 id="hero-title" class="hero-title">
           <span class="handwritten-1">Make art. Be seen.</span>
         </h1>
         <p class="hero-sub">
-          For young artists with a vision. Every submission is seen by working
-          artists, professors, and curators. No algorithms. No gimmicks. Just
-          art.
+          Arthouse is a place for the next generation of filmmakers. Each piece
+          is reviewed by experienced curators, so you don’t have to fight
+          against algorithms or noise. Short film submissions are now open for
+          Drop 001.
         </p>
         <nav class="hero-actions" aria-label="primary">
-          <a class="cta" href="/auth/signup.html">Join now →</a>
+          <a class="cta invert" href="/auth/signup.html">Share your film →</a>
         </nav>
       </section>
 
-      <!-- GALLERY-LIKE STATEMENTS: minimal, framed, sparse -->
-      <section class="panel statements" aria-label="principles">
-        <div class="frame">
-          <div class="frame-mat">
-            <h2 class="placard">Every piece is reviewed.</h2>
-            <p class="caption">We don’t sort by popularity. We sort by care.</p>
-          </div>
-        </div>
+      <script>
+        // Header (kept from your pattern)
+        fetch("/partials/header.html")
+          .then((r) => r.text())
+          .then((html) => {
+            document.body.insertAdjacentHTML("afterbegin", html);
+            window.authInit && window.authInit();
+          })
+          .catch(() => {});
+      </script>
+      <script>
+        // Sequential video playback
+        const video = document.getElementById("bgVideo");
+        const sources = Array.from(
+          { length: 14 },
+          (_, i) => `/images/landing_movies/${i + 1}.mov`
+        );
+        let index = 0;
 
-        <div class="frame">
-          <div class="frame-mat">
-            <h2 class="placard">Curation over clicks.</h2>
-            <p class="caption">
-              Selected works appear in a weekly gallery drop.
-            </p>
-          </div>
-        </div>
+        function playNext() {
+          video.src = sources[index];
+          video.play().catch(() => {});
+          video.onended = () => {
+            index = (index + 1) % sources.length;
+            playNext();
+          };
+        }
 
-        <div class="frame">
-          <div class="frame-mat">
-            <h2 class="placard">A real audience.</h2>
-            <p class="caption">
-              Writers, filmmakers, musicians, painters—reviewing your work.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- CREDIBILITY STRIP: quiet, not boastful -->
-      <section class="panel curators" aria-label="curators">
-        <p class="curator-line">
-          Curated weekly by a rotating panel of artists, professors, and
-          cultural editors.
-        </p>
-      </section>
+        playNext();
+      </script>
     </main>
-
-    <script>
-      // Header (kept from your pattern)
-      fetch("/partials/header.html")
-        .then((r) => r.text())
-        .then((html) => {
-          document.body.insertAdjacentHTML("afterbegin", html);
-          window.authInit && window.authInit();
-        })
-        .catch(() => {});
-    </script>
   </body>
 </html>
