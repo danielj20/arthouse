@@ -124,8 +124,6 @@ textarea {
   color: #fff;
   border: 1px solid rgba(255,255,255,0.50);
   transition: transform .2s ease, background-color .25s ease, backdrop-filter .25s ease;
-  -webkit-backdrop-filter: invert(1) contrast(1.05);
-  backdrop-filter: invert(1) contrast(1.05);
 }
 
 .cta.invert:hover {
@@ -201,12 +199,32 @@ landing-header {
   z-index: -1;
 }
 
+/* Each video fills the screen and crossfades smoothly */
 .background-video video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   filter: brightness(0.65) contrast(1.05) saturate(1.1);
+  opacity: 0;
+  transition: opacity 0.8s ease; /* smooth fade between clips */
 }
+
+/* The active video will be visible */
+#bgVideoA {
+  opacity: 1;
+  z-index: 0;
+}
+
+#bgVideoB {
+  z-index: 0;
+}
+
+
+
+#bgVideoA { opacity: 1; z-index: 0; }
+#bgVideoB { opacity: 0; z-index: 0; }
 
 /* Hero centered on screen */
 .landing-panel.hero {
