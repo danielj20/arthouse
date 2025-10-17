@@ -4,3 +4,6 @@ uploads/*
 !.gitkeep
 .prisma
 .DS_Store
+client/images/landing_movies/
+*.mov
+*.mp4
