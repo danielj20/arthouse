@@ -83,6 +83,9 @@ ul.nav-right a, ul.nav-left a {
   .nav ul {
     display: none;
   }
+  .nav {
+    display: flex;
+  }
   .brand {
     margin: 0 auto;
   }
