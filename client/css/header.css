@@ -1,8 +1,9 @@
-.header:not(.header-landing) {
+.header {
   background: var(--bg);
   position: sticky;
   top: 0;
   z-index: 100;
+  letter-spacing: -0.05em;
 }
 
 .nav {

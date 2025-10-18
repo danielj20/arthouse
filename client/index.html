@@ -22,7 +22,7 @@
 
       <section class="landing-panel hero" aria-labelledby="hero-title">
         <h1 id="hero-title" class="hero-title">
-          <span class="handwritten-1">Make art. Be seen.</span>
+          <span class="serif">Make art. Be seen.</span>
         </h1>
         <p class="hero-sub">
           Arthouse is a place for the next generation of filmmakers. Each piece
@@ -34,7 +34,6 @@
           <a class="cta invert" href="/auth/signup.html">Share your film →</a>
         </nav>
       </section>
-
       <script>
         // Header (kept from your pattern)
         fetch("/partials/header.html")
@@ -46,79 +45,19 @@
           .catch(() => {});
       </script>
       <script>
-        const sources = Array.from(
-          { length: 15 },
-          (_, i) => `/images/landing_movies/${i + 1}.mov`
-        );
-
-        const videoA = document.getElementById("bgVideoA");
-        const videoB = document.getElementById("bgVideoB");
-
-        let currentIndex = 0;
-        let active = videoA; // the one currently visible
-        let standby = videoB; // the one we preload next into
-        let nextReady = false; // becomes true when standby is buffered
-        let nextIndex = 1; // index of the clip being preloaded
-
-        // Prepare the very first play + first preload
-        function init() {
-          active.src = sources[currentIndex];
-          active.classList.add("active");
-          active.play().catch(() => {});
-
-          // Preload the next clip immediately
-          queueNext();
-          // When current ends, cut instantly to the preloaded standby
-          active.onended = swapNow;
-        }
-
-        // Preload into the standby element while current plays
-        function queueNext() {
-          nextIndex = (currentIndex + 1) % sources.length;
-          nextReady = false;
-
-          // Clean up old listeners
-          standby.onloadeddata = null;
-          standby.oncanplaythrough = null;
-
-          standby.src = sources[nextIndex];
-          standby.load(); // start buffering
-
-          // Mark ready as soon as we have first frame (more reliable than canplaythrough on Safari)
-          standby.onloadeddata = () => {
-            nextReady = true;
-          };
-          // Bonus: if browser fires canplaythrough, we’re definitely ready
-          standby.oncanplaythrough = () => {
-            nextReady = true;
-          };
-        }
-
-        // Instant swap with no waiting
-        function swapNow() {
-          // If for some reason standby isn't ready, we still switch to avoid gaps
-          // The browser will finish buffering and start as soon as it can.
-          active.classList.remove("active");
-          standby.classList.add("active");
-
-          standby.currentTime = 0;
-          standby.play().catch(() => {});
-
-          // Swap references
-          const wasActive = active;
-          active = standby;
-          standby = wasActive;
-
-          currentIndex = nextIndex;
-
-          // Hook up end event on the new active
-          active.onended = swapNow;
-
-          // Start preloading the next clip immediately
-          queueNext();
-        }
-
-        init();
+        document.addEventListener("DOMContentLoaded", () => {
+          const video = document.getElementById("bgVideo");
+          if (video) {
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                video.muted = true;
+                video.setAttribute("muted", "");
+                video.play().catch(() => {});
+              });
+            }
+          }
+        });
       </script>
     </main>
   </body>

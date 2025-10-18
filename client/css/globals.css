@@ -1,28 +1,15 @@
 @import url("header.css");
-@import url("submit.css");
 @import url("this-week.css");
 @import url("community.css");
+@import url("submit.css");
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap');
 
 :root {
   --bg: #F8F8F4;
   --text: #0b0b0b;
   --accent: #000;
-  --kern: -0.05em;
-  /* -5% tracking */
-  --music-color: #0056ff;   /* Blue */
-  --art-color: #1f8a3e;     /* Green */
-  --fiction-color: #b22222; /* Red */
-  --cinema-color: #f39c12;  /* Orange */
-  --poetry-color: #ff6600;  /* Bright orange */
+    /* -5% tracking */
 }
-
-.music   { color: #0056ff; }   /* Blue */
-.art     { color: #1f8a3e; }   /* Green */
-.fiction { color: #b22222; }   /* Red */
-.cinema  { color: #f39c12; }   /* Orange */
-.poetry  { color: #ff6600; }   /* Bright orange */
-
 
 * {
   box-sizing: border-box
@@ -35,7 +22,10 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: "Instrument Sans", "Helvetica", system-ui, -apple-system, Arial, sans-serif;
-  letter-spacing: var(--kern)
+}
+
+.serif {
+  font-family: "Instrument Serif", 'Times New Roman', Times, serif;
 }
 
 a {
@@ -43,17 +33,19 @@ a {
   text-decoration: underline
 }
 
-
-
-.container, .container-sm, .container-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-    margin: 4rem auto;
-  padding: 0 1.25rem
+p {
+  font-size: 1.1rem;
 }
 
 .container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin: 4rem auto;
+  padding: 0 1.25rem
+}
+
+.container-lg {
   max-width: 1100px;
 }
 
@@ -65,21 +57,33 @@ a {
   max-width: 400px;
 }
 
-.pair-sm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+
 
 h1 {
   font-weight: 700;
-  font-size: 2.5rem;
+  font-size: 3rem;
 }
 
-h1, h2, h3, h4, p {
+h2 {
+  font-weight: 500;
+  font-size: 2rem;
+}
+
+h1, h2, h3, h4, p, ul {
   margin-block-start: 0;
   margin-block-end: 0;
 }
+
+p {
+  font-size: 1.1rem;
+}
+
+.header-pair, section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 
 input[type="text"],
 input[type="email"],
@@ -115,43 +119,6 @@ textarea {
   background-size: 100% 0.3em; 
   background-position: 0 0.9em; 
 }
-
-.hero-text {
-  font-size: 2.25rem;
-  line-height: 1.4;
-  font-weight: 100;
-}
-
-.hero-link-secondary {
-  font-size: 1.125rem;
-}
-
-.cta, button {
-  display: inline-block;
-  background: #000;
-  color: #fff;
-  border: 1px solid #000;
-  padding: 0.75rem 2rem;
-  font-size: 1.25rem;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: 300;
-  transition: color .25s, background .25s;
-}
-
-.cta:hover {
-  background: var(--bg);
-  color: #000;
-  animation: flicker 0.2s 1;
-}
-
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
-}
-
-
-
 
 .rules {
   line-height: 1.9
@@ -195,26 +162,6 @@ th {
   border-bottom-color: currentColor; /* match text color */
 }
 
-/* Category colors (reuse same as submit.html buttons) */
-.tab.music {
-  color: var(--music-color, blue);
-}
-
-.tab.art {
-  color: var(--art-color, green);
-}
-
-.tab.fiction {
-  color: var(--fiction-color, red);
-}
-
-.tab.cinema {
-  color: var(--cinema-color, orange);
-}
-
-.tab.poetry {
-  color: var(--poetry-color, darkorange);
-}
       .tab-content {
         display: none;
       }
@@ -302,10 +249,6 @@ th {
   border: 1px solid #ccc;
 }
 
-.audio-icon, .generic-icon {
-  font-size: 2rem;
-}
-
 .file-name {
   font-size: 1rem;
   font-weight: 500;
@@ -344,18 +287,6 @@ th {
   font-size: 0.9rem;
 }
 
-.submission-snippet {
-  white-space: pre-wrap;   /* keep line breaks, wrap long lines */
-  word-wrap: break-word;   /* break long words if needed */
-  font-family: "EB Garamond", Georgia, 'Times New Roman', Times, serif;
-  font-size: 1rem;
-  background: #FFF9EA;
-  padding: 1rem;
-  box-shadow: inset 0 0 20px rgba(255, 127, 17, 0.25);
-  letter-spacing: normal;
-  line-height: 1.3rem;
-  margin: 0;
-}
 
 @media (max-width: 768px) {
   .container, .container-sm {
