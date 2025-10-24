@@ -4,76 +4,725 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Share — arthouse</title>
+
+    <!-- Your global design system (imports header.css + fonts) -->
     <link rel="stylesheet" href="/css/globals.css" />
-    <link rel="icon" type="image/png" href="images/logo.png" />
     <script defer src="/js/auth.js"></script>
     <script defer src="/js/header.js"></script>
+
+    <style>
+      /* Page-specific refinements that sit on top of globals.css */
+      :root {
+        --line: #e5e5e5;
+        --ink: #0b0b0b;
+        --ink-2: #444;
+        --ink-3: #777;
+      }
+
+      main.container {
+        gap: 2rem;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.4rem, 6vw, 3.6rem);
+        line-height: 1.05;
+      }
+      .hero .sub {
+        color: var(--ink-2);
+        max-width: 46ch;
+      }
+
+      /* Progress */
+      .progressbar {
+        height: 0.25rem;
+        background: #eaeaea;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progressbar i {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: var(--ink);
+        transition: width 0.35s ease;
+      }
+
+      /* Panels */
+      .panel {
+        display: none;
+        background: #fff;
+        border: 1px solid var(--line);
+        padding: 1.25rem;
+      }
+      .panel.active {
+        display: flex;
+      }
+
+      .upload-instructions {
+        margin: 0.25rem 0 0;
+        color: var(--ink-3);
+        font-size: 0.95rem;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: start;
+        font-weight: 600;
+      }
+
+      /* Inputs */
+      .note {
+        color: var(--ink-3);
+        font-size: 0.95rem;
+      }
+      .error {
+        color: #b00020;
+        font-size: 0.95rem;
+      }
+
+      /* Actions */
+      .actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      /* Success */
+      .success {
+        text-align: center;
+        border: 1px solid var(--line);
+        padding: 2rem;
+        background: #fff;
+      }
+
+      /* Small helpers */
+      .sr-only {
+        position: absolute !important;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+      }
+      .row {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .row > * {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      /* Success container keeps your existing look */
+      .panel.success {
+        text-align: center;
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+
+      /* Ticket shell */
+      .ticket {
+        position: relative;
+        display: flex;
+        max-width: 680px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid var(--ink);
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+        overflow: hidden;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      /* Stub (left) */
+      .ticket__stub {
+        width: 140px;
+        background: #0b0b0b;
+        color: #fff;
+        padding: 14px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-right: 1px dashed rgba(255, 255, 255, 0.35);
+      }
+      .ticket__brand {
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+      }
+      .ticket__sn {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      /* Body (right) */
+      .ticket__body {
+        flex: 1;
+        padding: 16px 18px;
+        text-align: left;
+      }
+      .ticket__row {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 6px 0;
+        border-bottom: 1px dashed #e6e6e6;
+      }
+      .ticket__row:last-of-type {
+        border-bottom: none;
+      }
+      .ticket__label {
+        width: 120px;
+        color: #666;
+        font-size: 0.9rem;
+      }
+      .ticket__value {
+        flex: 1;
+        font-weight: 600;
+      }
+      .ticket__value.ok {
+        color: #3f816d;
+      }
+      .ticket__fineprint {
+        margin-top: 10px;
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      /* Notches (die-cut) */
+      .ticket__notch {
+        position: absolute;
+        left: 138px;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border: 1px solid var(--ink);
+        border-radius: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 0 0 4px #fff; /* masks border overlap */
+      }
+      .ticket__notch.top {
+        top: -9px;
+      }
+      .ticket__notch.bottom {
+        bottom: -9px;
+      }
+
+      @media (max-width: 640px) {
+        .ticket {
+          flex-direction: column;
+          margin: 1rem auto;
+          max-width: 95%;
+        }
+        .ticket__stub {
+          width: 100%;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          border-right: none;
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.35);
+          padding: 10px 14px;
+        }
+        .ticket__body {
+          padding: 14px;
+        }
+        .ticket__notch {
+          display: none; /* clean up circles on mobile */
+        }
+      }
+
+      /* Helpers */
+      .actions.center {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+      .linklike {
+        border: none;
+        background: none;
+        padding: 0;
+        color: #3f816d;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      @media (max-width: 640px) {
+        .actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .actions .button {
+          width: 100%;
+        }
+      }
+    </style>
   </head>
   <body>
     <main class="container container-sm">
-      <h1>Share your art.</h1>
-
-      <nav class="tabs">
-        <a href="?medium=music" id="tab-music" class="tab music">MUSIC</a>
-        <a href="?medium=art" id="tab-art" class="tab art">ART</a>
-        <a href="?medium=fiction" id="tab-fiction" class="tab fiction"
-          >FICTION</a
-        >
-        <a href="?medium=cinema" id="tab-cinema" class="tab cinema">CINEMA</a>
-        <a href="?medium=poetry" id="tab-poetry" class="tab poetry">POETRY</a>
-      </nav>
-
-      <div id="formContainer" class="form-container">
-        <!-- The form for the chosen medium loads here -->
+      <div id="page-header" class="header-pair hero">
+        <h1 class="serif">Share your film.</h1>
+        <p>
+          Cinema, not content. Every submission is watched by a working curator.
+          Please review our
+          <a href="/submit.html">submission guidelines</a> before sharing.
+        </p>
       </div>
+
+      <div id="progress" class="progressbar" aria-hidden="true">
+        <i id="progressFill"></i>
+      </div>
+
+      <!-- FORM -->
+      <form
+        id="filmForm"
+        class="form"
+        action="/api/submissions/cinema"
+        method="POST"
+        enctype="multipart/form-data"
+        novalidate
+      >
+        <!-- STEP 1 -->
+        <section
+          class="panel active rounded"
+          data-step="1"
+          aria-labelledby="s1"
+        >
+          <h2 id="s1" class="serif">Upload</h2>
+
+          <div
+            id="film-upload"
+            class="upload-zone rounded"
+            role="button"
+            tabindex="0"
+          >
+            <p>
+              <strong>Upload your movie file</strong>
+              <span class="accepted">(.mp4 / .mov)</span>
+            </p>
+            <p class="upload-instructions">Max length: 15 min.</p>
+            <input
+              class="sr-only"
+              type="file"
+              id="fileInput"
+              name="file"
+              accept="video/mp4,video/quicktime"
+            />
+          </div>
+          <div id="fileMeta" class="note" aria-live="polite"></div>
+
+          <div
+            id="poster-upload"
+            class="upload-zone rounded"
+            role="button"
+            tabindex="0"
+          >
+            <p>
+              <strong>Upload a poster or still</strong>
+              <span class="accepted">(.png / .jpg)</span>
+            </p>
+            <p class="upload-instructions">
+              This will represent your film on The Drop. Aspect ratio: 4:3 or
+              16:9 (landscape).
+            </p>
+            <input
+              class="sr-only"
+              type="file"
+              id="poster"
+              name="poster"
+              accept="image/png, image/jpeg"
+            />
+          </div>
+          <div id="posterMeta" class="note" aria-live="polite"></div>
+
+          <p class="note">
+            Audio must be audible. English subtitles required for non-English.
+          </p>
+          <p id="e1" class="error" role="alert" style="display: none"></p>
+
+          <div class="actions">
+            <div class="spacer"></div>
+            <button type="button" class="button btn-main" data-next>
+              Continue →
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="panel rounded" data-step="2" aria-labelledby="s2">
+          <h2 id="s2" class="serif">Context</h2>
+
+          <label for="title">Title</label>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            maxlength="60"
+            placeholder="Title (max 60 chars)"
+            required
+          />
+
+          <label for="logline">Logline</label>
+          <input
+            id="logline"
+            name="logline"
+            type="text"
+            placeholder="One sentence — what is it?"
+          />
+
+          <label for="director_note">Director’s note</label>
+          <textarea
+            id="director_note"
+            name="director_note"
+            placeholder="What were you trying to do? What should we look for? (≤ 150 words)"
+          ></textarea>
+
+          <label for="credits">Credits</label>
+          <textarea
+            id="credits"
+            name="credits"
+            placeholder="DP, Editor, Composer, Cast"
+          ></textarea>
+
+          <div class="row">
+            <div class="field-group">
+              <label for="premiere">Has this film been shown before?</label>
+              <select id="premiere" name="premiere">
+                <option value="">Select…</option>
+                <option value="never">No — this is its first showing</option>
+                <option value="festival">
+                  Yes — it’s been shown at a festival
+                </option>
+                <option value="online">
+                  Yes — it’s already online elsewhere
+                </option>
+              </select>
+            </div>
+            <div>
+              <label for="language">Primary language</label>
+              <input
+                id="language"
+                name="language"
+                type="text"
+                placeholder="e.g., English"
+              />
+            </div>
+          </div>
+
+          <p class="note">
+            For blind fairness, avoid personal identifiers here (anything that
+            would make it clear the film was made by YOU specifically). You’ll
+            add your bio next.
+          </p>
+          <p id="e2" class="error" role="alert" style="display: none"></p>
+
+          <div class="actions">
+            <button type="button" class="button btn-secondary" data-prev>
+              ← Back
+            </button>
+            <button type="button" class="button btn-main" data-next>
+              Continue →
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section class="panel rounded" data-step="3" aria-labelledby="s3">
+          <h2 id="s3" class="serif">Rights & Bio</h2>
+
+          <div class="checkbox-group">
+            <input id="own" type="checkbox" required /> I own the work and
+            exhibition rights.
+          </div>
+          <div class="checkbox-group">
+            <input id="cleared" type="checkbox" required /> All music/footage
+            are licensed or original.
+          </div>
+          <div class="checkbox-group">
+            <input id="license" type="checkbox" required /> I grant Arthouse a
+            non-exclusive, credit-required license to host and promote the film
+            (excerpts/stills/quotes).
+          </div>
+          <div class="row">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Contact email"
+              required
+            />
+            <input
+              id="dob"
+              name="dob"
+              type="text"
+              placeholder="Date of birth (YYYY-MM-DD)"
+            />
+          </div>
+
+          <label for="bio"
+            >Artist bio
+            <span class="note"
+              >(not shown to curators during review)</span
+            ></label
+          >
+          <textarea
+            id="bio"
+            name="bio"
+            placeholder="2–4 sentences about you"
+          ></textarea>
+
+          <p class="note">
+            You keep ownership; removal can be requested anytime. Submission
+            doesn’t guarantee selection for The Drop, but it does guarantee a
+            review and a dedicated community post on Arthouse.
+          </p>
+          <p id="e3" class="error" role="alert" style="display: none"></p>
+
+          <div class="actions">
+            <button type="button" class="button btn-secondary" data-prev>
+              ← Back
+            </button>
+            <button id="submitBtn" class="button btn-main" type="submit">
+              Submit to The Drop 001 →
+            </button>
+          </div>
+        </section>
+
+        <!-- SUCCESS (replace your existing #success block) -->
+        <section
+          id="success"
+          class="panel success rounded"
+          style="display: none"
+        >
+          <h1 class="serif">Thanks for sharing your film with us.</h1>
+          <div class="ticket" aria-live="polite">
+            <div class="ticket__stub">
+              <div class="ticket__brand">arthouse</div>
+              <div class="ticket__sn">ADMIT ONE<span id="snNum"></span></div>
+            </div>
+
+            <div class="ticket__body">
+              <div class="ticket__row">
+                <span class="ticket__label">Film</span>
+                <span class="ticket__value" id="ticketTitle">Untitled</span>
+              </div>
+              <div class="ticket__row">
+                <span class="ticket__label">Status</span>
+                <span class="ticket__value ok"
+                  >In review — curator feedback guaranteed</span
+                >
+              </div>
+              <div class="ticket__row">
+                <span class="ticket__label">Consideration</span>
+                <span class="ticket__value">
+                  Eligible for <strong>The Drop 001</strong>
+                </span>
+              </div>
+              <div class="ticket__fineprint">
+                You’ll receive written notes in 7–10 days. If selected, your
+                film appears in
+                <strong>The Drop</strong> with Curator & Community scores.
+              </div>
+            </div>
+
+            <!-- die-cut notches -->
+            <i class="ticket__notch top" aria-hidden="true"></i>
+            <i class="ticket__notch bottom" aria-hidden="true"></i>
+          </div>
+
+          <div class="actions center" style="margin-top: 1rem">
+            <a class="button btn-main" href="/dashboard.html"
+              >View your submission →</a
+            >
+            <a class="button btn-secondary" href="/this-week.html"
+              >See The Drop →</a
+            >
+          </div>
+
+          <p class="note center" style="margin-top: 0.75rem">
+            Your film is officially part of the review queue. Expect your
+            curator’s feedback soon.
+          </p>
+        </section>
+      </form>
     </main>
+
+    <script type="module">
+      // Inject your header (works with your header.html + header.css)
+      fetch("/header.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.getElementById("site-header").innerHTML = html;
+        })
+        .catch(() => {
+          /* optional: fallback or ignore */
+        });
+
+      // Upload zone helper (your module)
+      import { initUploadZone } from "/js/upload-zone.js";
+      initUploadZone("film-upload", [".mp4", ".mov"]);
+      initUploadZone("poster-upload", [".png", ".jpg", ".jpeg"]);
+
+      // Wizard logic (single-column)
+      const form = document.getElementById("filmForm");
+      const panels = [...form.querySelectorAll(".panel[data-step]")];
+      const progressFill = document.getElementById("progressFill");
+
+      let step = 1;
+      function setStep(n) {
+        step = Math.max(1, Math.min(3, n));
+        panels.forEach((p) =>
+          p.classList.toggle("active", Number(p.dataset.step) === step)
+        );
+        progressFill.style.width = ((step - 1) / 2) * 100 + "%";
+        const first = panels[step - 1].querySelector(
+          "input,textarea,select,button"
+        );
+        first && first.focus({ preventScroll: true });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      form.addEventListener("click", (e) => {
+        if (e.target.matches("[data-next]")) {
+          if (validate(step)) setStep(step + 1);
+        }
+        if (e.target.matches("[data-prev]")) {
+          setStep(step - 1);
+        }
+      });
+
+      function showErr(id, msg) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+      function clearErrs() {
+        form
+          .querySelectorAll(".error")
+          .forEach((e) => (e.style.display = "none"));
+      }
+
+      function validate(cur) {
+        clearErrs();
+        if (cur === 1) {
+          const file = document.getElementById("fileInput").files[0];
+          if (!file) {
+            showErr("e1", "Please add a file.");
+            return false;
+          }
+          return true;
+        }
+        if (cur === 2) {
+          if (document.getElementById("title").value.trim() === "") {
+            showErr("e2", "Title is required.");
+            return false;
+          }
+          return true;
+        }
+        if (cur === 3) {
+          if (
+            !document.getElementById("own").checked ||
+            !document.getElementById("cleared").checked ||
+            !document.getElementById("license").checked
+          ) {
+            showErr("e3", "Please confirm rights & license to continue.");
+            return false;
+          }
+          if (videoDuration === 0) {
+            showErr("e1", "Please wait for the video metadata to load.");
+            return false;
+          }
+          if (videoDuration > 900) {
+            showErr("e1", "Runtime must be ≤ 15:00.");
+            return false;
+          }
+          if (document.getElementById("email").value.trim() === "") {
+            showErr("e3", "Contact email is required.");
+            return false;
+          }
+          return true;
+        }
+        return true;
+      }
+
+      // File meta label (quick feedback + runtime detection)
+      const fileInput = document.getElementById("fileInput");
+      const fileMeta = document.getElementById("fileMeta");
+      let videoDuration = 0;
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        fileMeta.textContent = `Attached: ${file.name} (${Math.round(
+          file.size / 1024 / 1024
+        )} MB)`;
+
+        const video = document.createElement("video");
+        video.preload = "metadata";
+
+        video.onloadedmetadata = function () {
+          window.URL.revokeObjectURL(video.src);
+          videoDuration = video.duration;
+
+          const mins = Math.floor(videoDuration / 60);
+          const secs = Math.floor(videoDuration % 60);
+          const formatted = `${mins}:${secs.toString().padStart(2, "0")}`;
+          fileMeta.textContent += ` — Runtime: ${formatted}`;
+
+          if (videoDuration > 900) {
+            showErr("e1", "Runtime must be ≤ 15:00.");
+            fileInput.value = "";
+            fileMeta.textContent = "";
+            videoDuration = 0;
+          }
+        };
+
+        video.src = URL.createObjectURL(file);
+      });
+
+      // Submit (simulate success; remove preventDefault to POST)
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        // Grab title (fallback to filename if empty)
+        const titleInput = document.getElementById("title");
+        const fileInput = document.getElementById("fileInput");
+        const filmTitle =
+          titleInput?.value.trim() ||
+          (fileInput.files[0]
+            ? fileInput.files[0].name.replace(/\.[^/.]+$/, "")
+            : "Untitled");
+
+        // Fill in ticket dynamically
+        document.getElementById("ticketTitle").textContent = filmTitle;
+        document.getElementById("snNum").textContent = Date.now()
+          .toString()
+          .slice(-6);
+
+        panels.forEach((p) => (p.style.display = "none"));
+        document.getElementById("success").style.display = "flex";
+        progressFill.style.width = "100%";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        document.getElementById("page-header").style.display = "none";
+        document.getElementById("progress").style.display = "none";
+      });
+
+      setStep(1);
+    </script>
     <script>
+      // Header (kept from your pattern)
       fetch("/partials/header.html")
         .then((r) => r.text())
         .then((html) => {
           document.body.insertAdjacentHTML("afterbegin", html);
-          // call into auth.js now that header exists
           window.authInit && window.authInit();
         })
-        .catch((err) => console.error("Header load failed:", err));
-    </script>
-
-    <script type="module">
-      import { initUploadZone } from "/js/upload-zone.js";
-
-      const params = new URLSearchParams(window.location.search);
-      const medium = params.get("medium") || "music";
-
-      // Map allowed extensions for each medium
-      const extMap = {
-        art: [".png", ".jpg", ".jpeg"],
-        music: [".mp3", ".wav"],
-        cinema: [".mp4"],
-        fiction: [".txt", ".pdf"],
-        poetry: [".txt", ".pdf"],
-      };
-
-      async function loadForm(medium) {
-        try {
-          const res = await fetch(`/partials/forms/${medium}.html`);
-          const html = await res.text();
-          document.getElementById("formContainer").innerHTML = html;
-
-          // after injecting form, bind upload zone
-          initUploadZone("uploadZone", extMap[medium] || []);
-
-          // highlight active tab
-          document
-            .querySelectorAll(".tabs .tab")
-            .forEach((a) => a.classList.remove("active"));
-          document.getElementById(`tab-${medium}`).classList.add("active");
-        } catch (err) {
-          document.getElementById("formContainer").innerHTML =
-            "<p>Could not load form.</p>";
-        }
-      }
-
-      loadForm(medium);
+        .catch(() => {});
     </script>
   </body>
 </html>

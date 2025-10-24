@@ -28,14 +28,6 @@ model VerificationCode {
   used      Boolean  @default(false)
 }
 
-enum Category {
-  MUSIC
-  ART
-  FICTION
-  CINEMA
-  POETRY
-}
-
 enum SubmissionStatus {
   PENDING
   REVIEWED
@@ -46,13 +38,6 @@ enum ReviewResponseType {
   TEXT
   AUDIO
   VIDEO
-}
-
-enum AnnotationKind {
-  IMAGE_PIN     // x,y normalized (0..1)
-  TIME_POINT    // single timestamp (startSec)
-  TIME_RANGE    // startSec..endSec
-  TEXT_SPAN     // character range
 }
 
 // ---------- MODELS ----------
@@ -75,25 +60,28 @@ model User {
 // ---------- Submissions ----------
 
 model Submission {
-  id          String       @id @default(cuid())
-  title       String
-  slug        String       @unique
-  category    Category
-  description String?
-  contentUrl  String?
-  wordCount   Int?
-  durationSec Int?
-  artistBio   String?      // kept from your previous schema
-  status      SubmissionStatus @default(PENDING)
+  id           String       @id @default(cuid())
+  title        String
+  slug         String       @unique
+  logline      String?
+  directorNote String?
+  credits      String?
+  language     String?
+  posterUrl    String?
+  filmUrl      String?
+  runtimeSec   Int?
+  artistBio    String?
+  dob          DateTime?
+  status       SubmissionStatus @default(PENDING)
 
-  author      User         @relation(fields: [authorId], references: [id])
-  authorId    String
-  createdAt   DateTime     @default(now())
+  author       User         @relation(fields: [authorId], references: [id])
+  authorId     String
+  createdAt    DateTime     @default(now())
 
-  reviews     Review[]
-  comments    Comment[]
-  applause    Applause[]
-  featuredIn  Featured[]
+  reviews      Review[]
+  comments     Comment[]
+  applause     Applause[]
+  featuredIn   Featured[]
 }
 
 // ---------- Reviews (core) ----------
@@ -176,7 +164,7 @@ model Featured {
   weekDrop     WeekDrop   @relation(fields: [weekDropId], references: [id])
   weekDropId   String
 
-  rank         Int        // 1,2,3 within category (kept)
+  rank         Int        
   createdAt    DateTime   @default(now())
 
   @@index([weekDropId])

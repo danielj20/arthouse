@@ -12,9 +12,14 @@
   <body>
     <main class="landing-wall">
       <div class="background-video">
-        <video id="bgVideo" autoplay loop muted playsinline preload="auto">
+        <video id="bgVideo" autoplay muted loop playsinline preload="none">
           <source
-            src="https://arthousebucket.s3.us-east-2.amazonaws.com/web/loop.mp4"
+            src="https://d1ik7f3dlbml68.cloudfront.net/web/loop.m3u8"
+            type="application/x-mpegURL"
+          />
+          <!-- Fallback for browsers that don't support HLS -->
+          <source
+            src="https://d1ik7f3dlbml68.cloudfront.net/web/loop.mp4"
             type="video/mp4"
           />
         </video>
@@ -44,18 +49,34 @@
           })
           .catch(() => {});
       </script>
+      <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
       <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", function () {
           const video = document.getElementById("bgVideo");
-          if (video) {
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(() => {
-                video.muted = true;
-                video.setAttribute("muted", "");
+          const hlsUrl = "https://d1ik7f3dlbml68.cloudfront.net/web/loop.m3u8";
+
+          // Check if browser supports native HLS
+          if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = hlsUrl;
+          } else if (Hls.isSupported()) {
+            // Use hls.js for browsers that need JS HLS (like Chrome)
+            const hls = new Hls({
+              autoStartLoad: true,
+              startPosition: -1,
+              maxBufferLength: 30,
+            });
+            hls.loadSource(hlsUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              video.play().catch(() => {});
+              video.addEventListener("ended", function () {
+                video.currentTime = 0;
                 video.play().catch(() => {});
               });
-            }
+            });
+          } else {
+            // As a fallback, the <source> tag’s MP4 will still play
+            console.warn("HLS not supported; falling back to MP4.");
           }
         });
       </script>
